@@ -6,3 +6,4 @@ Backend for Rental Manager project
 
 - [Jacob Layton](https://github.com/JacobLayton)
 - [Adam Reid](https://github.com/iAmAdamReid)
+- [Timothy Hoang](https://github.com/timh1203)
