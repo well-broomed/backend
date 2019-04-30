@@ -20,7 +20,10 @@ server.get('/', (req, res) => {
 // Routes
 const exampleRoutes = require('./routes/exampleRoutes');
 
+const usersRouter = require('./routes/users/usersRouter');
+
 // Endpoints
 server.use('/api/exampleEndpoint', exampleRoutes);
+server.use('/api/users', usersRouter); // /users endpoints
 
 module.exports = server;
