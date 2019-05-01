@@ -1,5 +1,5 @@
 exports.up = function(knex, Promise) {
-	return knex.schema.createTable('tasks', table => {
+	return knex.schema.createTable('guest_tasks', table => {
 		table
 			.integer('guest_id')
 			.unsigned()
@@ -19,5 +19,5 @@ exports.up = function(knex, Promise) {
 };
 
 exports.down = function(knex, Promise) {
-	return knex.schema.dropTableIfExists('tasks');
+	return knex.schema.dropTableIfExists('guest_tasks');
 };
