@@ -4,7 +4,8 @@ exports.up = function(knex, Promise) {
 			.integer('guest_id')
 			.unsigned()
 			.notNullable()
-			.references('guests.guest_id');
+			.references('guests.guest_id')
+			.onDelete('CASCADE');
 
 		table
 			.integer('user_id')
