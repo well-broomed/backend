@@ -8,7 +8,10 @@ exports.up = function(knex, Promise) {
 			.notNullable()
 			.references('properties.property_id');
 
-    table.integer('deadline').notNullable();
+		table.string('text', 128).notNullable();
+
+		table.integer('deadline').notNullable();
+	});
 };
 
 exports.down = function(knex, Promise) {
