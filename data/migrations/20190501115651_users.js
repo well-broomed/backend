@@ -14,7 +14,7 @@ exports.up = function(knex, Promise) {
 
 		table.string('role', 16).notNullable();
 
-		table.string('picture', 256);
+		table.string('img_url', 256);
 
 		table.string('phone', 32);
 
