@@ -20,6 +20,8 @@ exports.up = function(knex, Promise) {
 
 		table.string('address', 256).notNullable();
 
+		table.string('picture', 256);
+
 		table.string('guest_guide', 256);
 
 		table.string('assistant_guide', 256);
