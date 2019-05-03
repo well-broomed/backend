@@ -13,7 +13,9 @@ exports.up = function(knex, Promise) {
 			.notNullable()
 			.references('users.user_id');
 
-		table.boolean('rejected');
+		table.timestamp('timestamp', { precision: 0 });
+
+		table.integer('status').defaultTo(0); // {0: pending, 1: accepted, 2: rejected}
 
 		table.unique(['guest_id', 'user_id']);
 	});

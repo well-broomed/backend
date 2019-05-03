@@ -18,7 +18,9 @@ exports.up = function(knex, Promise) {
 			.notNullable()
 			.unique();
 
-		table.boolean('rejected');
+		table.timestamp('timestamp', { precision: 0 });
+
+		table.integer('status').defaultTo(0); // {0: pending, 1: accepted, 2: rejected}
 
 		table.unique(['manager_id', 'email']);
 	});
