@@ -18,9 +18,9 @@ server.get('/', (req, res) => {
 });
 
 // Routes
-const exampleRoutes = require('./routes/exampleRoutes');
+const usersRoutes = require('./routes/usersRoutes');
 
 // Endpoints
-server.use('/api/exampleEndpoint', exampleRoutes);
+server.use('/', usersRoutes);
 
 module.exports = server;
