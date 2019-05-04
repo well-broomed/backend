@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const pg = require('pg');
 
 // pg.defaults.ssl = process.env.PG_SSL
@@ -10,7 +12,7 @@ module.exports = {
 		connection: {
 			host: 'localhost',
 			user: 'postgres',
-			database: 'postgres',
+			database: 'well-broomed',
 			password: process.env.PG_PASSWORD
 		},
 		useNullAsDefault: true,
