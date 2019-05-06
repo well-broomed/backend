@@ -77,4 +77,6 @@ async function acceptInvite(cleaner_id, inviteCode, email) {
 
 		return { inviteAccepted: false };
 	}
+
+	return { inviteAccepted: false };
 }

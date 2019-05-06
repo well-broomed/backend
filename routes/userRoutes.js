@@ -29,9 +29,9 @@ router.post('/login/:inviteCode*?', (req, res) => {
 					.acceptInvite(user.user_id, inviteCode, email)
 					.then(({ inviteAccepted, alreadyAccepted }) => {
 						if (alreadyAccepted) {
-							res.status(403).json({ alreadyAccepted });
+							res.status(403).json({ user, alreadyAccepted });
 						} else {
-							res.status(200).json({ user, inviteAccepted, alreadyAccepted });
+							res.status(200).json({ user, inviteAccepted });
 						}
 					});
 			} else {
