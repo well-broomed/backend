@@ -11,7 +11,7 @@ module.exports = {
 		client: 'pg',
 		connection: {
 			host: 'localhost',
-			user: 'postgres',
+			user: process.env.PG_USER || 'postgres',
 			database: 'well-broomed',
 			password: process.env.PG_PASSWORD
 		},
