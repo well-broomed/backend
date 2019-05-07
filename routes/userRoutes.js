@@ -9,7 +9,7 @@ const inviteModel = require('../models/inviteModel');
 /* Checks for valid token, adds user to db if they aren't registered, and accepts a partnership if provided a valid invite code */
 
 router.post('/login/:inviteCode*?', (req, res) => {
-	const { user_name, email, img_url, role } = req.body; // Change to auth0 object
+	const { nickname: user_name, email, picture: img_url, role } = req.body;
 	const { inviteCode } = req.params;
 
 	// TODO: verify the values are properly formatted and respond with errors for bad strings
@@ -29,7 +29,7 @@ router.post('/login/:inviteCode*?', (req, res) => {
 					.acceptInvite(user.user_id, inviteCode, email)
 					.then(({ inviteAccepted, alreadyAccepted }) => {
 						if (alreadyAccepted) {
-							res.status(403).json({ user, alreadyAccepted });
+							res.status(200).json({ user, alreadyAccepted });
 						} else {
 							res.status(200).json({ user, inviteAccepted });
 						}
