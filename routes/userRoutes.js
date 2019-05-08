@@ -6,10 +6,9 @@ const router = express.Router();
 const userModel = require('../models/userModel');
 const inviteModel = require('../models/inviteModel');
 
-/* Checks for valid token, adds user to db if they aren't registered, and accepts a partnership if provided a valid invite code */
-
-router.post('/login/:inviteCode*?', (req, res) => {
-	const { nickname: user_name, email, picture: img_url, role } = req.body;
+/* Check for a valid token, add the user to our db if they aren't registered, and create a partnership if provided a valid invite code */
+router.get('/login/:inviteCode*?', checkJwt, (req, res) => {
+	const { nickname: user_name, email, picture: img_url } = req.user;
 	const { inviteCode } = req.params;
 
 	// TODO: verify the values are properly formatted and respond with errors for bad strings
@@ -17,24 +16,23 @@ router.post('/login/:inviteCode*?', (req, res) => {
 	userModel
 		.getUserByEmail(email)
 		.then(user => {
-			return user
-				? { user }
-				: userModel.addUser(user_name, email, img_url, role);
+			// Return existing user's info, else create new user
+			return user ? { user } : userModel.addUser(user_name, email, img_url);
 		})
 		.then(({ notUnique, user }) => {
 			if (notUnique) {
+				// user_name and/or email are already taken
 				res.status(403).json({ notUnique });
 			} else if (inviteCode) {
+				// Attempt to accept invite
 				inviteModel
-					.acceptInvite(user.user_id, inviteCode, email)
+					.acceptInvite(email, inviteCode)
 					.then(({ inviteAccepted, alreadyAccepted }) => {
-						if (alreadyAccepted) {
-							res.status(200).json({ user, alreadyAccepted });
-						} else {
-							res.status(200).json({ user, inviteAccepted });
-						}
+						// Return user info and status of invite
+						res.status(200).json({ user, inviteAccepted, alreadyAccepted });
 					});
 			} else {
+				// Return user info
 				res.status(200).json({ user });
 			}
 		})
