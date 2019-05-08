@@ -7,7 +7,28 @@ module.exports = {
 	acceptInvite
 };
 
-async function inviteUser(manager_id, cleaner_id, email) {
+async function inviteUser(manager_email, cleaner_email) {
+	// Get manager_id
+	const [{ user_id: manager_id }] = await trx('users')
+		.where({ email: manager_email })
+		.select('user_id');
+
+	// Get cleaner_id
+	const [cleaner] = await trx('users')
+		.where({ email: cleaner_email })
+		.select('user_id');
+
+	if (cleaner) {
+		const [alreadyPartnered] = await db('partners').where({
+			manager_id,
+			cleaner_id: cleaner.user_id
+		});
+
+		if (alreadyPartnered) {
+			return { alreadyPartnered: true };
+		}
+	}
+
 	// Does invite already exist?
 	const [alreadyInvited] = await db('invites').where({ manager_id, email });
 
@@ -21,7 +42,7 @@ async function inviteUser(manager_id, cleaner_id, email) {
 
 	// Create an invite
 	const [invite] = await db('invites').insert(
-		{ manager_id, cleaner_id, email, inviteCode },
+		{ manager_id, email, inviteCode },
 		'inviteCode'
 	);
 
@@ -30,13 +51,14 @@ async function inviteUser(manager_id, cleaner_id, email) {
 	return { inviteCode: invite };
 }
 
-async function acceptInvite(cleaner_id, inviteCode, email) {
+async function acceptInvite(email, inviteCode) {
 	// Is this a valid invite?
 	const [invite] = await db('invites').where({ email, inviteCode });
 
 	if (invite) {
 		// Start a transaction
 		return db.transaction(async trx => {
+			// Look for existing partnership
 			const [alreadyPartnered] = await db('partners').where({
 				manager_id: invite.manager_id,
 				cleaner_id
@@ -45,6 +67,11 @@ async function acceptInvite(cleaner_id, inviteCode, email) {
 			if (alreadyPartnered) {
 				return { alreadyAccepted: true };
 			}
+
+			// Get the cleaner_id
+			const [{ user_id: cleaner_id }] = await trx('users')
+				.where({ email })
+				.select('user_id');
 
 			// Create a new partnership
 			const [partnership] = await trx('partners').insert(
@@ -75,7 +102,7 @@ async function acceptInvite(cleaner_id, inviteCode, email) {
 			return { inviteAccepted: true };
 		});
 
-		return { inviteAccepted: false };
+		return { inviteAccepted: false }; // Redundant?
 	}
 
 	return { inviteAccepted: false };
