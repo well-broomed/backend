@@ -7,7 +7,7 @@ const logger = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 
-server.use(logger('tiny'));
+// server.use(logger('tiny'));
 server.use(cors());
 server.use(helmet());
 server.use(express.json());
@@ -19,8 +19,10 @@ server.get('/', (req, res) => {
 
 // Routes
 const usersRoutes = require('./routes/usersRoutes');
+const propertiesRoutes = require('./routes/propertiesRoutes');
 
 // Endpoints
 server.use('/', usersRoutes);
+server.use('/properties', propertiesRoutes);
 
 module.exports = server;
