@@ -16,7 +16,7 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	const { role } = req.body;
 	const { inviteCode } = req.params;
 
-	// TODO: verify the values are properly formatted and respond with errors for bad strings
+	// TODO: verify arguments are properly formatted and respond with errors for bad strings
 
 	try {
 		// Find user else create a new one
@@ -30,9 +30,9 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 		}
 
 		// Attempt to accept invite if provided with inviteCode
-		const inviteStatus = inviteCode
-			? await inviteModel.acceptInvite(email, inviteCode)
-			: undefined;
+		const inviteStatus =
+			inviteCode &&
+			(await inviteModel.acceptInvite(email, inviteCode, user.user_id));
 
 		// Make a new token with the user data from our backend
 		const userInfo = generateToken(user, exp);

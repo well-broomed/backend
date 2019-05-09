@@ -7,16 +7,8 @@ module.exports = {
 	acceptInvite
 };
 
-async function inviteUser(manager_email, cleaner_email) {
-	// Get manager_id
-	const [{ user_id: manager_id }] = await trx('users')
-		.where({ email: manager_email })
-		.select('user_id');
-
-	// Get cleaner_id
-	const [cleaner] = await trx('users')
-		.where({ email: cleaner_email })
-		.select('user_id');
+async function inviteUser(manager_id, email) {
+	const [cleaner] = await db('users').where({ email });
 
 	if (cleaner) {
 		const [alreadyPartnered] = await db('partners').where({
@@ -51,16 +43,18 @@ async function inviteUser(manager_email, cleaner_email) {
 	return { inviteCode: invite };
 }
 
-async function acceptInvite(email, inviteCode) {
+async function acceptInvite(email, inviteCode, cleaner_id) {
 	// Is this a valid invite?
 	const [invite] = await db('invites').where({ email, inviteCode });
 
 	if (invite) {
+		const { manager_id } = invite;
+
 		// Start a transaction
 		return db.transaction(async trx => {
 			// Look for existing partnership
 			const [alreadyPartnered] = await db('partners').where({
-				manager_id: invite.manager_id,
+				manager_id,
 				cleaner_id
 			});
 
@@ -68,17 +62,9 @@ async function acceptInvite(email, inviteCode) {
 				return { inviteStatus: 'alreadyPartnered' };
 			}
 
-			// Get the cleaner_id
-			const [{ user_id: cleaner_id }] = await trx('users')
-				.where({ email })
-				.select('user_id');
-
 			// Create a new partnership
 			const [partnership] = await trx('partners').insert(
-				{
-					manager_id: invite.manager_id,
-					cleaner_id
-				},
+				{ manager_id, cleaner_id },
 				'*'
 			);
 
