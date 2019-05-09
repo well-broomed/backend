@@ -65,7 +65,7 @@ async function acceptInvite(email, inviteCode) {
 			});
 
 			if (alreadyPartnered) {
-				return { alreadyAccepted: true };
+				return { inviteStatus: 'alreadyPartnered' };
 			}
 
 			// Get the cleaner_id
@@ -99,11 +99,9 @@ async function acceptInvite(email, inviteCode) {
 
 			console.log('New partnership:\n', partnership);
 
-			return { inviteAccepted: true };
+			return { inviteStatus: 'accepted' };
 		});
-
-		return { inviteAccepted: false }; // Redundant?
 	}
 
-	return { inviteAccepted: false };
+	return { inviteStatus: 'invalid' };
 }

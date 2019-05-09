@@ -2,6 +2,9 @@
 const express = require('express');
 const router = express.Router();
 
+// Middleware
+const checkJwt = require('../Middleware/checkJwt');
+
 // Helpers
 const inviteModel = require('../models/inviteModel');
 
