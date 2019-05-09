@@ -25,8 +25,8 @@ const inviteRoutes = require('./routes/inviteRoutes');
 // const taskRoutes = require('./routes/taskRoutes');
 
 // Endpoints
-server.use('/users', userRoutes);
-server.use('/invites', inviteRoutes);
+server.use('/api/users', userRoutes);
+server.use('/api/invites', inviteRoutes);
 // server.use('/properties', propertyRoutes);
 // server.use('/guests', guestRoutes);
 // server.use('/tasks', taskRoutes);
