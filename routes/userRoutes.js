@@ -12,7 +12,7 @@ const generateToken = require('../Helpers/generateToken');
 
 /* Check for a valid token, add the user to our db if they aren't registered, and create a partnership if provided a valid invite code */
 router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
-	const { nickname: user_name, email, picture: img_url } = req.user;
+	const { nickname: user_name, email, picture: img_url, exp } = req.user;
 	const { role } = req.body;
 	const { inviteCode } = req.params;
 
@@ -35,7 +35,7 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 			: undefined;
 
 		// Make a new token with the user data from our backend
-		const userInfo = generateToken(user, req.exp);
+		const userInfo = generateToken(user, exp);
 
 		// Return user info
 		res.status(200).json({ userInfo, inviteStatus });
