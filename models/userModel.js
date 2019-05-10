@@ -36,5 +36,5 @@ async function addUser(user_name, email, img_url) {
 
 	console.log('New user:\n', user);
 
-	return { user };
+	return user;
 }
