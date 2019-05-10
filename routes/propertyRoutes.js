@@ -11,10 +11,47 @@ const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
 
 
-router.get('/manager/properties', checkJwt, checkUserInfo, (req, res) => {
+/** Add a new property */
+router.post('/', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id: manager_id } = req.user;
+	const {
+		property_name,
+		address,
+		cleaner_id,
+		guest_guide,
+		assistant_guide
+	} = req.body;
+
+	try {
+		const partnered =
+			cleaner_id && (await userModel.getPartner(manager_id, cleaner_id));
+
+		if (cleaner_id && !partnered) {
+			return res.status(404).json({ error: 'invalid assistant' });
+		}
+
+		const { property_id } = await propertyModel.addProperty(
+			manager_id,
+			property_name,
+			address,
+			cleaner_id,
+			guest_guide,
+			assistant_guide
+		);
+
+		res.status(201).json({ property_id });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
+
+router.get('/manager/properties', checkJwt, checkUserInfo, async (req, res) => {
     console.log('req.user', req.user);
     if(req.user.role === 'manager'){
-        propertyModel.getPropertiesByManager(req.user.user_id).then(properties => {
+        try {
+            const properties = await propertyModel.getPropertiesByManager(req.user.user_id);
+
             console.log('properties', properties);
     
             if(properties.length === 0){
@@ -22,10 +59,12 @@ router.get('/manager/properties', checkJwt, checkUserInfo, (req, res) => {
             } else {
                 return res.status(200).json({properties});
             }
-        }).catch(err => {
-            console.log(err);
-            return res.status(500).json({error: `Internal server error.`})
-        })
+        }
+        
+        catch(error) {
+            console.log(error);
+            return res.status(500).json({error})
+        }
     } else {
         return res.status(403).json({error: `You are not a property manager.`})
     }
