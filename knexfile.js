@@ -1,16 +1,19 @@
+require('dotenv').config();
+
 const pg = require('pg');
 
-pg.defaults.ssl = process.env.PG_SSL
-	? !!JSON.parse(String(process.env.PG_SSL))
-	: true;
+// pg.defaults.ssl = process.env.PG_SSL
+// 	? !!JSON.parse(String(process.env.PG_SSL))
+// 	: true;
 
 module.exports = {
 	development: {
 		client: 'pg',
 		connection: {
 			host: 'localhost',
-			user: 'postgres',
-			database: 'postgres'
+			user: process.env.PG_USER || 'postgres',
+			database: 'well-broomed',
+			password: process.env.PG_PASSWORD
 		},
 		useNullAsDefault: true,
 		migrations: {

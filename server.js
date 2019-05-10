@@ -18,9 +18,17 @@ server.get('/', (req, res) => {
 });
 
 // Routes
-const exampleRoutes = require('./routes/exampleRoutes');
+const userRoutes = require('./routes/userRoutes');
+const inviteRoutes = require('./routes/inviteRoutes');
+// const propertyRoutes = require('./routes/propertyRoutes');
+// const guestRoutes = require('./routes/guestRoutes');
+// const taskRoutes = require('./routes/taskRoutes');
 
 // Endpoints
-server.use('/api/exampleEndpoint', exampleRoutes);
+server.use('/api/users', userRoutes);
+server.use('/api/invites', inviteRoutes);
+// server.use('/properties', propertyRoutes);
+// server.use('/guests', guestRoutes);
+// server.use('/tasks', taskRoutes);
 
 module.exports = server;
