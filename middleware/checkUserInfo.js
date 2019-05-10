@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const checkToken = (req, res, next) => {
+const checkUserInfo = (req, res, next) => {
 	const token = req.headers['user-info'];
 
 	if (token) {
