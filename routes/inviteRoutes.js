@@ -2,21 +2,25 @@
 const express = require('express');
 const router = express.Router();
 
+// Middleware
+const checkJwt = require('../Middleware/checkJwt');
+const checkUserInfo = require('../Middleware/checkUserInfo');
+
 // Helpers
 const inviteModel = require('../models/inviteModel');
 
-/* Accept an invitation */
-router.get('/accept/:inviteCode', checkJwt, (req, res) => {
-	const { email } = req.user;
+/** Accept an invitation */
+router.get('/accept/:inviteCode', checkJwt, checkUserInfo, (req, res) => {
+	const { email, user_id } = req.user;
 	const { inviteCode } = req.params;
 
 	inviteModel
-		.acceptInvite(email, inviteCode)
-		.then(({ inviteAccepted, alreadyAccepted }) => {
-			if (!invitedAccepted) {
-				res.status(403).json({ inviteAccepted, alreadyAccepted });
+		.acceptInvite(email, inviteCode, user_id)
+		.then(({ inviteStatus }) => {
+			if (inviteStatus !== 'accepted') {
+				res.status(403).json({ inviteStatus });
 			} else {
-				res.status(201).json({ inviteAccepted });
+				res.status(201).json({ inviteStatus });
 			}
 		})
 		.catch(error => {
@@ -25,23 +29,22 @@ router.get('/accept/:inviteCode', checkJwt, (req, res) => {
 		});
 });
 
-/* Invite a user */
-router.get('/:cleaner_email', checkJwt, (req, res) => {
-	const { email: manager_email } = req.user;
-	const { cleaner_email } = req.params;
+/** Invite a user */
+router.get('/:cleaner_email', checkJwt, checkUserInfo, (req, res) => {
+	const { user_id: manager_id, role } = req.user;
+	const { cleaner_email, cleaner_id } = req.params;
 
-	// TODO: verify the values are properly formatted and respond with errors for bad strings
+	// TODO: verify arguments are properly formatted and respond with errors for bad strings
 
-	// Verify that user is a manager (disabled until roles are included in tokens)
-	// if (role !== 'manager') {
-	// 	res.status(401).json({ error: 'Must be manager to invite users' });
-	// 	return;
-	// }
+	// Verify that user is a manager
+	if (role !== 'manager') {
+		return res.status(401).json({ error: 'Must be manager to invite users' });
+	}
 
 	inviteModel
-		.inviteUser(manager_email, cleaner_email)
+		.inviteUser(manager_id, cleaner_email)
 		.then(({ alreadyInvited, alreadyPartnered, inviteCode }) => {
-			if (alreadyInvited) {
+			if (!inviteCode) {
 				res.status(403).json({ alreadyInvited, alreadyPartnered });
 			} else {
 				res.status(201).json({ inviteCode });
