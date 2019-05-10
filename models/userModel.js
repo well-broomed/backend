@@ -34,6 +34,12 @@ async function addUser(user_name, email, img_url) {
 		'*'
 	);
 
+	function getPartner(manager_id, cleaner_id) {
+		return db('partners')
+			.where({ manager_id, cleaner_id })
+			.first();
+	}
+
 	console.log('New user:\n', user);
 
 	return user;
