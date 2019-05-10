@@ -6,6 +6,8 @@ const router = express.Router();
 const userModel = require('../models/userModel');
 const inviteModel = require('../models/inviteModel');
 
+const checkJwt = require('../middleware/checkJwt');
+
 /* Check for a valid token, add the user to our db if they aren't registered, and create a partnership if provided a valid invite code */
 router.get('/login/:inviteCode*?', checkJwt, (req, res) => {
 	const { nickname: user_name, email, picture: img_url } = req.user;
