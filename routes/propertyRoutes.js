@@ -83,6 +83,4 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
     }
 })
 
-
-
 module.exports = router;
