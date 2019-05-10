@@ -29,7 +29,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(404).json({ error: 'invalid assistant' });
 		}
 
-		const { property_id } = await propertyModel.addProperty(
+		const { property_id, notUnique } = await propertyModel.addProperty(
 			manager_id,
 			property_name,
 			address,
@@ -37,6 +37,10 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 			guest_guide,
 			assistant_guide
 		);
+
+		if (notUnique) {
+			return res.status(403).json({ notUnique });
+		}
 
 		res.status(201).json({ property_id });
 	} catch (error) {
