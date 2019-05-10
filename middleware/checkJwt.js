@@ -2,14 +2,11 @@ const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
 const dotenv = require('dotenv');
 
-<<<<<<< HEAD
 // Run the dotenv config if in development mode.
 if(process.env.NODE_ENV !== 'production'){
     dotenv.config();
 }
 
-=======
->>>>>>> c8d2e3cb2f02cbe74347a0c5df35c628dc408b94
 /**
  * Any route that runs through this middleware will extract the JWT from the
  * Authorization header and pass it to the auth0 signature confirmation endpoint
