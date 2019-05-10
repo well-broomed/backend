@@ -55,7 +55,7 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
             console.log('properties', properties);
     
             if(properties.length === 0){
-                return res.status(200).json({message: `No properties found for that user.`})
+                return res.status(200).json({message: `No properties found for that user.`, properties: null},)
             } else {
                 return res.status(200).json({properties});
             }
