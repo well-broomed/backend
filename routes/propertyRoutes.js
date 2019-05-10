@@ -46,7 +46,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
-router.get('/manager/properties', checkJwt, checkUserInfo, async (req, res) => {
+router.get('/', checkJwt, checkUserInfo, async (req, res) => {
     console.log('req.user', req.user);
     if(req.user.role === 'manager'){
         try {
@@ -65,8 +65,21 @@ router.get('/manager/properties', checkJwt, checkUserInfo, async (req, res) => {
             console.log(error);
             return res.status(500).json({error})
         }
-    } else {
-        return res.status(403).json({error: `You are not a property manager.`})
+    } else if(req.user.role === 'assistant') {
+        try{
+            const properties = await propertyModel.getPropertiesByAssistant(req.user.user_id);
+
+            console.log('asst props', properties);
+
+            if(properties.length === 0){
+                return res.status(200).json({message: `No properties found.`})
+            } else {
+                return res.status(200).json({properties});
+            }
+        } catch(error){
+            console.log(error);
+            return res.status(500).json({error});
+        }
     }
 })
 

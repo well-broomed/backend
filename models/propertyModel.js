@@ -16,7 +16,7 @@ const db = require('../data/dbConfig');
 
 module.exports = {
     getPropertiesByManager,
-    // getPropertiesByCleaner,
+    getPropertiesByAssistant,
     // getPropertyById,
     // getPropertyByAddress,
 
@@ -30,6 +30,12 @@ function getPropertiesByManager(manager_id){
     return db.select('*')
     .from('properties')
     .where({manager_id});
+}
+
+function getPropertiesByAssistant(cleaner_id){
+    return db.select('*')
+    .from('properties')
+    .where({cleaner_id});
 }
 
 function addProperty(property){
