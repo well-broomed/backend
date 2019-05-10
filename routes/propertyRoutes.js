@@ -10,4 +10,7 @@ const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
 
 
+
+
+
 module.exports = router;
