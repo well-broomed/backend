@@ -27,7 +27,11 @@ const propertyRoutes = require('./routes/propertyRoutes');
 // Endpoints
 server.use('/api/users', userRoutes);
 server.use('/api/invites', inviteRoutes);
+<<<<<<< HEAD
 server.use('/properties', propertyRoutes);
+=======
+// server.use('/properties', propertyRoutes);
+>>>>>>> dev
 // server.use('/guests', guestRoutes);
 // server.use('/tasks', taskRoutes);
 
