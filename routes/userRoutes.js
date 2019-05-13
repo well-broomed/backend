@@ -3,12 +3,12 @@ const express = require('express');
 const router = express.Router();
 
 // Middleware
-const checkJwt = require('../Middleware/checkJwt');
+const checkJwt = require('../middleware/checkJwt');
 
 // Helpers
 const userModel = require('../models/userModel');
 const inviteModel = require('../models/inviteModel');
-const generateToken = require('../Helpers/generateToken');
+const generateToken = require('../helpers/generateToken');
 
 /* Check for a valid token, add the user to our db if they aren't registered, and create a partnership if provided a valid invite code */
 router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
