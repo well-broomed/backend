@@ -10,7 +10,7 @@ module.exports = {
 	updateProperty
 };
 
-async function getProperties(user_id, role) {
+function getProperties(user_id, role) {
 	// This implementation doesn't support managers as assistants to other managers
 	return role === 'manager'
 		? db('properties').where({ manager_id: user_id })
