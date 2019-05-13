@@ -1,7 +1,9 @@
 const db = require('../data/dbConfig');
 
 module.exports = {
-	getGuests
+	getGuests,
+	getGuest,
+	addGuest
 };
 
 function getGuests(user_id, role) {
@@ -34,4 +36,28 @@ function getGuest(user_id, guest_id, role) {
 				.where({ 'partners.cleaner_id': user_id, guest_id })
 				.select('g.*')
 				.first();
+}
+
+async function addGuest(property_id, checkin, checkout, email, cleaner_id) {
+	const [notUnique] = await db('guests')
+		.where({ property_id, guest_name, checkin, checkout })
+		.select('guest_id');
+
+	if (notUnique) {
+		return { notUnique };
+	}
+
+	return db('guests')
+		.insert(
+			{
+				property_id,
+				guest_name,
+				checkin,
+				checkout,
+				email,
+				cleaner_id
+			},
+			'guest_id'
+		)
+		.first();
 }
