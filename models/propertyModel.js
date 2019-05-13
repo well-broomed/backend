@@ -7,7 +7,8 @@ module.exports = {
 	getProperties,
 	getProperty,
 	addProperty,
-	updateProperty
+	updateProperty,
+	checkOwner
 };
 
 async function getProperties(user_id, role) {
@@ -104,4 +105,11 @@ async function updateProperty(
 	);
 
 	return { property_id: property.property_id };
+}
+
+function checkOwner(manager_id, property_id) {
+	return db('properties')
+		.where({ manager_id, property_id })
+		.select('property_id')
+		.first();
 }
