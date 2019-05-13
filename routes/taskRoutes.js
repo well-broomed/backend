@@ -31,6 +31,35 @@ router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 });
 
 /** Add a task */
+router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+	const { property_id } = req.params;
+	const { description, deadline } = req.body;
+
+	try {
+		const valid = await propertyModel.checkOwner(user_id, property_id);
+
+		if (!valid) {
+			return res.status(403).json({ error: 'invalid property' });
+		}
+
+		const { task_id, notUnique } = await taskModel.addTask(
+			user_id,
+			property_id,
+			description,
+			deadline
+		);
+
+		if (notUnique) {
+			return res.status(403).json({ notUnique });
+		}
+
+		res.status(200).json({ task_id });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
 
 /** Update a task*/
 

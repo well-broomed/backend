@@ -1,7 +1,8 @@
 const db = require('../data/dbConfig');
 
 module.exports = {
-	getTasks
+	getTasks,
+	addTask
 };
 
 function getTasks(user_id, property_id, role) {
@@ -19,4 +20,25 @@ function getTasks(user_id, property_id, role) {
 					't.property_id': property_id
 				})
 				.select('t.task_id', 't.description', 't.deadline');
+}
+
+async function addTask(property_id, description, deadline) {
+	const [notUnique] = await db('tasks')
+		.where({ property_id, description, deadline })
+		.select('task_id');
+
+	if (notUnique) {
+		return { notUnique };
+	}
+
+	return db('tasks')
+		.insert(
+			{
+				property_id,
+				description,
+				deadline
+			},
+			'task_id'
+		)
+		.first();
 }
