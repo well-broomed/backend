@@ -3,7 +3,7 @@ const db = require('../data/dbConfig');
 const randomString = require('../helpers/randomString');
 const mailgunKey = process.env.MAILGUN_KEY
 const mailgunDomain = process.env.MAILGUN_URL
-const mg = require('mailgun-js')({apiKey: mailgunKey, domain: mailgunDomain});
+const Mailgun = require('mailgun-js');
 
 module.exports = {
 	inviteUser,
@@ -41,7 +41,28 @@ async function inviteUser(manager_id, email) {
 		'inviteCode'
 	);
 
-	//Input mailgun code here
+	//MailGun
+	const mailgun = new Mailgun({apiKey: mailgunKey, domain: mailgunDomain});
+	
+	const data = {
+		from: "kevten09@gmail.com",
+		to: "kevten09@gmail.com",
+		subject: "Hello Testing",
+		html: "Testing emails:" + inviteCode
+	}
+
+	mailgun.messages().send(data, function (err, body) {
+		if (err) {
+			res.render('error', {error: err});
+			console.log("Mailgun got an error: ", err);
+		}
+
+		else {
+			res.sender('Submitted', {email: "kevten09@gmail.com"});
+			console.log(body);
+		}
+	});
+	
 	console.log(`Invite code '${invite}' sent to ${email}`);
 
 	return { inviteCode: invite };

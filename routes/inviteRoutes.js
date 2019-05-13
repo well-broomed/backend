@@ -30,8 +30,9 @@ router.get('/accept/:inviteCode', checkJwt, checkUserInfo, (req, res) => {
 });
 
 /** Invite a user */
-router.get('/:cleaner_email', checkJwt, checkUserInfo, (req, res) => {
-	const { user_id: manager_id, role } = req.user;
+router.get('/:cleaner_email',/* checkJwt, checkUserInfo ,*/ (req, res) => {
+	//const { manager_id, role } = req.user;
+	const {manager_id, role} = req.body.user
 	const { cleaner_email, cleaner_id } = req.params;
 
 	// TODO: verify arguments are properly formatted and respond with errors for bad strings
