@@ -63,9 +63,9 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		assistant_guide
 	} = req.body;
 
-  if (role !== 'manager') {
-    return res.status(403).json(error: 'not a manager')
-  }
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
 
 	try {
 		if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) {
@@ -103,9 +103,9 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		assistant_guide
 	} = req.body;
 
-  if (role !== 'manager') {
-    return res.status(403).json(error: 'not a manager')
-  }
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
 
 	try {
 		if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) {
