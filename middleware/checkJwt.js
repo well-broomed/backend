@@ -1,11 +1,5 @@
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-const dotenv = require('dotenv');
-
-// Run the dotenv config if in development mode.
-if(process.env.NODE_ENV !== 'production'){
-    dotenv.config();
-}
 
 /**
  * Any route that runs through this middleware will extract the JWT from the
