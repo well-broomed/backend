@@ -24,4 +24,23 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
+/** Get a guest by guest_id */
+router.get('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+	const { guest_id } = req.params;
+
+	try {
+		const guest = await guestModel.getguest(user_id, guest_id, role);
+
+		if (!guest) {
+			return res.status(404).json({ error: 'guest not found' });
+		}
+
+		res.status(200).json({ guest });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
+
 module.exports = router;
