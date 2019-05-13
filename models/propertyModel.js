@@ -1,8 +1,33 @@
 const db = require('../data/dbConfig');
 
 module.exports = {
+	getProperties,
+	getProperty,
 	addProperty
 };
+
+async function getProperties(user_id, role) {
+	// This implementation doesn't support managers as assistants to other managers
+	return role === 'manager'
+		? db('properties').where({ manager_id: user_id })
+		: db('properties')
+				.join('partners', 'partners.manager_id', 'properties.manager_id')
+				.where({ 'partners.cleaner_id': user_id })
+				.select('properties.*');
+}
+
+function getProperty(user_id, property_id, role) {
+	// This implementation doesn't support managers as assistants to other managers
+	return role === 'manager'
+		? db('properties')
+				.where({ manager_id: user_id, property_id })
+				.first()
+		: db('properties')
+				.join('partners', 'partners.manager_id', 'properties.manager_id')
+				.where({ 'partners.cleaner_id': user_id, property_id })
+				.select('properties.*')
+				.first();
+}
 
 async function addProperty(
 	manager_id,
