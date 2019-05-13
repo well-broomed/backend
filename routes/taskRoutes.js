@@ -31,10 +31,14 @@ router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 });
 
 /** Add a task */
-router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
+router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
 	const { property_id } = req.params;
 	const { description, deadline } = req.body;
+
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
 
 	try {
 		const valid = await propertyModel.checkOwner(user_id, property_id);
@@ -62,6 +66,37 @@ router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 });
 
 /** Update a task*/
+router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+	const { task_id } = req.params;
+	const { description, deadline } = req.body;
+
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
+
+	try {
+		const { task_id, notUnique } = await taskModel.updateTask(
+			user_id,
+			task_id,
+			description,
+			deadline
+		);
+
+		if (notUnique) {
+			return res.status(403).json({ notUnique });
+		}
+
+		if (!task_id) {
+			return res.status(403).json({ error: 'invalid task' });
+		}
+
+		res.status(200).json({ task_id });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
 
 /** Delete a task */
 
