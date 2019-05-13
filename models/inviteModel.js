@@ -41,28 +41,6 @@ async function inviteUser(manager_id, email) {
 		'inviteCode'
 	);
 
-	//MailGun
-	const mailgun = new Mailgun({apiKey: mailgunKey, domain: mailgunDomain});
-	
-	const data = {
-		from: "kevten09@gmail.com",
-		to: "kevten09@gmail.com",
-		subject: "Hello Testing",
-		html: "Testing emails:" + inviteCode
-	}
-
-	mailgun.messages().send(data, function (err, body) {
-		if (err) {
-			res.render('error', {error: err});
-			console.log("Mailgun got an error: ", err);
-		}
-
-		else {
-			res.sender('Submitted', {email: "kevten09@gmail.com"});
-			console.log(body);
-		}
-	});
-	
 	console.log(`Invite code '${invite}' sent to ${email}`);
 
 	return { inviteCode: invite };
