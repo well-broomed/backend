@@ -8,6 +8,7 @@ const checkUserInfo = require('../Middleware/checkUserInfo');
 
 // Helpers
 const taskModel = require('../models/taskModel');
+const propertyModel = require('../models/propertyModel');
 
 // Routes
 /** Get tasks by property_id */
