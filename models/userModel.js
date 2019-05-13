@@ -12,7 +12,6 @@ function getUserByEmail(email) {
 }
 
 async function addUser(user_name, email, img_url, role) {
-	console.log('helperrole', role);
 	// Is user_name or email already taken?
 	const [notUnique] = await db('users')
 		.where({ user_name })
