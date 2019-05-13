@@ -38,7 +38,7 @@ router.get('/:cleaner_email', checkJwt, checkUserInfo, (req, res) => {
 
 	// Verify that user is a manager
 	if (role !== 'manager') {
-		return res.status(401).json({ error: 'Must be manager to invite users' });
+		return res.status(403).json({ error: 'Must be manager to invite users' });
 	}
 
 	inviteModel
