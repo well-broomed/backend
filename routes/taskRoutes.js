@@ -99,5 +99,26 @@ router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 });
 
 /** Delete a task */
+router.delete('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+	const { task_id } = req.params;
+
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
+
+	try {
+		const deleted = await taskModel.removeTask(user_id, task_id);
+
+		if (!deleted) {
+			return res.status(403).json({ error: 'invalid task' });
+		}
+
+		res.status(200).json({ deleted });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
 
 module.exports = router;

@@ -3,7 +3,8 @@ const db = require('../data/dbConfig');
 module.exports = {
 	getTasks,
 	addTask,
-	updateTask
+	updateTask,
+	removeTask
 };
 
 function getTasks(user_id, property_id, role) {
@@ -48,10 +49,10 @@ async function updateTask(user_id, task_id, description, deadline) {
 	// Check for ownership of property
 	const [task] = await db('tasks as t')
 		.join('properties as p', 't.property_id', 'p.property_id')
-		.where({ manager_id: user_id })
+		.where({ manager_id: user_id, task_id })
 		.select('property_id');
 
-	// This could probably be made more explicit
+	// This could probably be more explicit
 	if (!task) {
 		return {};
 	}
@@ -107,5 +108,38 @@ async function updateTask(user_id, task_id, description, deadline) {
 			.where({ task_id })
 			.update({ description, deadline }, 'task_id')
 			.first();
+	}
+}
+
+async function removeTask(user_id, task_id) {
+	// Check for ownership of property
+	const [task] = await db('tasks as t')
+		.join('properties as p', 't.property_id', 'p.property_id')
+		.where({ manager_id: user_id, task_id })
+		.select('property_id');
+
+	// This could probably be more explicit
+	if (!task) {
+		return {};
+	}
+
+	//Check for dependant guest_tasks
+	const [guest_task] = await db('guest_tasks')
+		.where({ task_id })
+		.select('guest_id')
+		.first();
+
+	if (guest_task) {
+		// Remove the property_id from the task
+		const updated = await db('tasks')
+			.where({ task_id })
+			.update({ property_id: 0 }, 'task_id');
+
+		return updated.length;
+	} else {
+		// Delete the task
+		return db('tasks')
+			.where({ task_id })
+			.del();
 	}
 }
