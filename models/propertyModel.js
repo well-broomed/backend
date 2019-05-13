@@ -1,9 +1,13 @@
 const db = require('../data/dbConfig');
 
+// Helpers
+const checkForDuplicates = require('../Helpers/checkForDuplicates');
+
 module.exports = {
 	getProperties,
 	getProperty,
-	addProperty
+	addProperty,
+	updateProperty
 };
 
 async function getProperties(user_id, role) {
@@ -43,7 +47,7 @@ async function addProperty(
 
 	if (notUnique) {
 		return {
-			notUnique: notUnique.property_id
+			notUnique: notUnique.property_name
 		};
 	}
 
@@ -51,6 +55,45 @@ async function addProperty(
 	const [property] = await db('properties').insert(
 		{
 			manager_id,
+			property_name,
+			address,
+			cleaner_id,
+			guest_guide,
+			assistant_guide
+		},
+		'property_id'
+	);
+
+	return { property_id: property.property_id };
+}
+
+async function updateProperty(
+	manager_id,
+	property_name,
+	address,
+	cleaner_id,
+	guest_guide,
+	assistant_guide
+) {
+	const properties = await db('properties')
+		.where({ manager_id })
+		.select('property_name', 'address');
+
+	const notUnique = properties.checkForDuplicates(
+		{ property_name, address },
+		properties,
+		'propery_name'
+	);
+
+	if (notUnique.property_name || notUnique.address) {
+		return {
+			notUnique
+		};
+	}
+
+	// Add new user
+	const [property] = await db('properties').update(
+		{
 			property_name,
 			address,
 			cleaner_id,
