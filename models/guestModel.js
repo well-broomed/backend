@@ -2,8 +2,8 @@ const db = require('../data/dbConfig');
 
 module.exports = {
 	getGuests,
-	getGuest,
-	addGuest
+	getGuest
+	// addGuest
 };
 
 function getGuests(user_id, role) {
@@ -38,26 +38,36 @@ function getGuest(user_id, guest_id, role) {
 				.first();
 }
 
-async function addGuest(property_id, checkin, checkout, email, cleaner_id) {
-	const [notUnique] = await db('guests')
-		.where({ property_id, guest_name, checkin, checkout })
-		.select('guest_id');
+// async function addGuest(property_id, checkin, checkout, email, cleaner_id) {
+// 	const [notUnique] = await db('guests')
+// 		.where({ property_id, guest_name, checkin, checkout })
+// 		.select('guest_id');
 
-	if (notUnique) {
-		return { notUnique };
-	}
+// 	if (notUnique) {
+// 		return { notUnique };
+// 	}
 
-	return db('guests')
-		.insert(
-			{
-				property_id,
-				guest_name,
-				checkin,
-				checkout,
-				email,
-				cleaner_id
-			},
-			'guest_id'
-		)
-		.first();
-}
+// 	// Start a transaction
+// 	return db.transaction(async trx => {
+// 		// Add a new guest
+// 		const [guest_id] = trx('guests').insert(
+// 			{
+// 				property_id,
+// 				guest_name,
+// 				checkin,
+// 				checkout,
+// 				email,
+// 				cleaner_id
+// 			},
+// 			'guest_id'
+// 		);
+
+// 		if (!guest_id) {
+// 			trx.rollback();
+// 		}
+
+// 		// Create new guest_tasks
+
+// 		return { guest_id };
+// 	});
+// }
