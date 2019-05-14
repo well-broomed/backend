@@ -52,7 +52,7 @@ async function inviteUser(manager_id, email) {
 		to: email,
 		subject: "Well-Broomed Invitation",
 		html: "Hello! You have been invited to join a property management team on Well-Broomed." + 
-			  "If you would like to accept this invitation, please click this link: www.well-broomed.com/accept/" + inviteCode,
+			  "If you would like to accept this invitation, please click this link: " + `${process.env.serverURL}/accept/` + inviteCode,
 	}
 
 	mailgun.messages().send(data, function (err, body) {
