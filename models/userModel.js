@@ -11,7 +11,7 @@ function getUserByEmail(email) {
 		.first();
 }
 
-async function addUser(user_name, email, img_url) {
+async function addUser(user_name, email, img_url, role) {
 	// Is user_name or email already taken?
 	const [notUnique] = await db('users')
 		.where({ user_name })
@@ -30,7 +30,7 @@ async function addUser(user_name, email, img_url) {
 
 	// Add new user
 	const [user] = await db('users').insert(
-		{ user_name, email, img_url, role: 'manager' },
+		{ user_name, email, img_url, role },
 		'*'
 	);
 
