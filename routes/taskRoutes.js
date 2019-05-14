@@ -35,23 +35,22 @@ router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
 	const { property_id } = req.params;
-	const { description, deadline } = req.body;
+	const { text, deadline } = req.body;
 
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
 	}
 
 	try {
-		const valid = await propertyModel.checkOwner(user_id, property_id);
+		const validProperty = await propertyModel.checkOwner(user_id, property_id);
 
-		if (!valid) {
+		if (!validProperty) {
 			return res.status(403).json({ error: 'invalid property' });
 		}
 
 		const { task_id, notUnique } = await taskModel.addTask(
-			user_id,
 			property_id,
-			description,
+			text,
 			deadline
 		);
 
@@ -70,17 +69,17 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
 	const { task_id } = req.params;
-	const { description, deadline } = req.body;
+	const { text, deadline } = req.body;
 
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
 	}
 
 	try {
-		const { task_id, notUnique } = await taskModel.updateTask(
+		const { updated, notUnique } = await taskModel.updateTask(
 			user_id,
 			task_id,
-			description,
+			text,
 			deadline
 		);
 
@@ -88,11 +87,11 @@ router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(409).json({ notUnique });
 		}
 
-		if (!task_id) {
+		if (!updated) {
 			return res.status(403).json({ error: 'invalid task' });
 		}
 
-		res.status(200).json({ task_id });
+		res.status(200).json({ updated });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
@@ -109,7 +108,7 @@ router.delete('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 
 	try {
-		const deleted = await taskModel.removeTask(user_id, task_id);
+		const { deleted } = await taskModel.removeTask(user_id, task_id);
 
 		if (!deleted) {
 			return res.status(403).json({ error: 'invalid task' });
