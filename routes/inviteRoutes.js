@@ -33,7 +33,6 @@ router.get('/accept/:inviteCode', checkJwt, checkUserInfo, (req, res) => {
 router.post('/', checkJwt, checkUserInfo, (req, res) => {
 	const { user_id: manager_id, role } = req.user;
 	const { cleaner_email } = req.body;
-
 	// TODO: verify arguments are properly formatted and respond with errors for bad strings
 
 	// Verify that user is a manager
