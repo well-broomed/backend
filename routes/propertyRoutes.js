@@ -58,6 +58,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 	const {
 		property_name,
 		address,
+		img_url,
 		cleaner_id,
 		guest_guide,
 		assistant_guide
@@ -76,6 +77,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 			manager_id,
 			property_name,
 			address,
+			img_url,
 			cleaner_id,
 			guest_guide,
 			assistant_guide
@@ -99,6 +101,7 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	const {
 		property_name,
 		address,
+		img_url,
 		cleaner_id,
 		guest_guide,
 		assistant_guide
@@ -118,6 +121,7 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			property_id,
 			property_name,
 			address,
+			img_url,
 			cleaner_id,
 			guest_guide,
 			assistant_guide

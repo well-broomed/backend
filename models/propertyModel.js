@@ -38,6 +38,7 @@ async function addProperty(
 	manager_id,
 	property_name,
 	address,
+	img_url,
 	cleaner_id,
 	guest_guide,
 	assistant_guide
@@ -64,6 +65,7 @@ async function addProperty(
 			manager_id,
 			property_name,
 			address,
+			img_url,
 			cleaner_id,
 			guest_guide,
 			assistant_guide
@@ -79,6 +81,7 @@ async function updateProperty(
 	property_id,
 	property_name,
 	address,
+	img_url,
 	cleaner_id,
 	guest_guide,
 	assistant_guide
@@ -104,6 +107,7 @@ async function updateProperty(
 			{
 				property_name,
 				address,
+				img_url,
 				cleaner_id,
 				guest_guide,
 				assistant_guide
