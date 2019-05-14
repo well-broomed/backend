@@ -42,18 +42,24 @@ async function addProperty(
 	guest_guide,
 	assistant_guide
 ) {
-	const [notUnique] = await db('properties')
+	// Check for duplicate property names and addresses
+	const notUniqueProperties = await db('properties')
 		.where({ manager_id, property_name })
-		.select('property_id');
+		.orWhere({ manager_id, address })
+		.select('property_name', 'address');
 
-	if (notUnique) {
-		return {
-			notUnique: notUnique.property_name
-		};
-	}
+	const notUnique =
+		notUniqueProperties[0] &&
+		(await checkForDuplicates(
+			{ property_name, address },
+			notUniqueProperties,
+			'property_name'
+		));
 
-	// Add new user
-	const [property] = await db('properties').insert(
+	if (notUnique) return { notUnique };
+
+	// Add new property
+	const [property_id] = await db('properties').insert(
 		{
 			manager_id,
 			property_name,
@@ -65,46 +71,47 @@ async function addProperty(
 		'property_id'
 	);
 
-	return { property_id: property.property_id };
+	return { property_id };
 }
 
 async function updateProperty(
 	manager_id,
+	property_id,
 	property_name,
 	address,
 	cleaner_id,
 	guest_guide,
 	assistant_guide
 ) {
-	const properties = await db('properties')
-		.where({ manager_id })
-		.select('property_name', 'address');
+	const notUniqueProperties = await db('properties')
+		.where({ manager_id, property_name })
+		.orWhere({ manager_id, address })
+		.select('property_id', 'property_name', 'address');
 
-	const notUnique = properties.checkForDuplicates(
+	const notUnique = checkForDuplicates(
 		{ property_name, address },
-		properties,
-		'propery_name'
+		notUniqueProperties,
+		'property_name',
+		{ key: 'property_id', value: property_id }
 	);
 
-	if (notUnique.property_name || notUnique.address) {
-		return {
-			notUnique
-		};
-	}
+	if (notUnique) return { notUnique };
 
-	// Add new user
-	const [property] = await db('properties').update(
-		{
-			property_name,
-			address,
-			cleaner_id,
-			guest_guide,
-			assistant_guide
-		},
-		'property_id'
-	);
+	// Update property
+	const [updated] = await db('properties')
+		.where({ property_id })
+		.update(
+			{
+				property_name,
+				address,
+				cleaner_id,
+				guest_guide,
+				assistant_guide
+			},
+			'property_id'
+		);
 
-	return { property_id: property.property_id };
+	return { updated };
 }
 
 function checkOwner(manager_id, property_id) {
