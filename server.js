@@ -27,8 +27,8 @@ const guestRoutes = require('./routes/guestRoutes');
 // Endpoints
 server.use('/api/users', userRoutes);
 server.use('/api/invites', inviteRoutes);
-server.use('/properties', propertyRoutes);
-server.use('/tasks', taskRoutes);
-server.use('/guests', guestRoutes);
+server.use('/api/properties', propertyRoutes);
+server.use('/api/tasks', taskRoutes);
+server.use('/api/guests', guestRoutes);
 
 module.exports = server;
