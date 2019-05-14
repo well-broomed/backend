@@ -30,7 +30,7 @@ router.get('/accept/:inviteCode', checkJwt, checkUserInfo, (req, res) => {
 });
 
 /** Invite a user */
-router.get('/:cleaner_email',/* checkJwt, checkUserInfo ,*/ (req, res) => {
+router.get('/:cleaner_email', checkJwt, checkUserInfo , (req, res) => {
 	//const { manager_id, role } = req.user;
 	const {manager_id, role} = req.body.user
 	const { cleaner_email, cleaner_id } = req.params;
@@ -44,10 +44,13 @@ router.get('/:cleaner_email',/* checkJwt, checkUserInfo ,*/ (req, res) => {
 
 	inviteModel
 		.inviteUser(manager_id, cleaner_email)
-		.then(({ alreadyInvited, alreadyPartnered, inviteCode }) => {
+		.then(({ alreadyInvited, alreadyPartnered, inviteCode, mailgunErr }) => {
 			if (!inviteCode) {
 				res.status(403).json({ alreadyInvited, alreadyPartnered });
-			} else {
+			}
+			else if(mailgunErr)
+				res.status(403).json({mailgunErr});
+			else {
 				res.status(201).json({ inviteCode });
 			}
 		})
