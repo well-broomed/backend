@@ -56,7 +56,7 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		);
 
 		if (notUnique) {
-			return res.status(403).json({ notUnique });
+			return res.status(409).json({ notUnique });
 		}
 
 		res.status(200).json({ task_id });
@@ -85,7 +85,7 @@ router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 		);
 
 		if (notUnique) {
-			return res.status(403).json({ notUnique });
+			return res.status(409).json({ notUnique });
 		}
 
 		if (!task_id) {
