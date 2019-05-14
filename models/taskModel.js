@@ -13,7 +13,7 @@ function getTasks(user_id, property_id, role) {
 		? db('tasks as t')
 				.join('properties as p', 't.property_id', 'p.property_id')
 				.where({ 'p.manager_id': user_id, 't.property_id': property_id })
-				.select('t.task_id', 't.description', 't.deadline')
+				.select('t.task_id', 't.text', 't.deadline')
 		: db('tasks as t')
 				.join('properties as p', 't.property_id', 'p.property_id')
 				.join('partners', 'p.manager_id', 'partners.manager_id')
@@ -21,58 +21,53 @@ function getTasks(user_id, property_id, role) {
 					'partners.cleaner_id': user_id,
 					't.property_id': property_id
 				})
-				.select('t.task_id', 't.description', 't.deadline');
+				.select('t.task_id', 't.text', 't.deadline');
 }
 
-async function addTask(property_id, description, deadline) {
+async function addTask(property_id, text, deadline) {
 	const [notUnique] = await db('tasks')
-		.where({ property_id, description, deadline })
+		.where({ property_id, text, deadline })
 		.select('task_id');
 
 	if (notUnique) {
 		return { notUnique };
 	}
 
-	return db('tasks')
-		.insert(
-			{
-				property_id,
-				description,
-				deadline
-			},
-			'task_id'
-		)
-		.first();
+	const [task_id] = await db('tasks').insert(
+		{ property_id, text, deadline },
+		'task_id'
+	);
+
+	return { task_id };
 }
 
-async function updateTask(user_id, task_id, description, deadline) {
+async function updateTask(user_id, task_id, text, deadline) {
 	// Check for ownership of property
-	const [task] = await db('tasks as t')
+	const [validTask] = await db('tasks as t')
 		.join('properties as p', 't.property_id', 'p.property_id')
 		.where({ manager_id: user_id, task_id })
-		.select('property_id');
+		.select('p.property_id');
 
 	// This could probably be more explicit
-	if (!task) {
+	if (!validTask) {
 		return {};
 	}
 
-	const { property_id } = task;
+	const { property_id } = validTask;
 
 	// Check for uniqueness
 	const [notUnique] = await db('tasks')
-		.where({ property_id, description, deadline })
+		.where({ property_id, text, deadline })
 		.select('task_id');
 
-	if (notUnique) {
+	if (notUnique && notUnique.task_id != task_id) {
 		return { notUnique };
 	}
 
 	//Check for dependant guest_tasks
 	const [guest_task] = await db('guest_tasks')
 		.where({ task_id })
-		.select('guest_id')
-		.first();
+		.select('guest_id');
 
 	if (guest_task) {
 		// Start a transaction
@@ -81,7 +76,7 @@ async function updateTask(user_id, task_id, description, deadline) {
 			const [newTask] = trx('tasks').insert(
 				{
 					property_id,
-					description,
+					text,
 					deadline
 				},
 				'task_id'
@@ -100,46 +95,48 @@ async function updateTask(user_id, task_id, description, deadline) {
 				trx.rollback();
 			}
 
-			return { task_id: newTask.task_id };
+			return { updated: newTask.task_id };
 		});
 	} else {
 		// Update the task
-		return db('tasks')
+		const [updated] = await db('tasks')
 			.where({ task_id })
-			.update({ description, deadline }, 'task_id')
-			.first();
+			.update({ text, deadline }, 'task_id');
+
+		return { updated };
 	}
 }
 
 async function removeTask(user_id, task_id) {
 	// Check for ownership of property
-	const [task] = await db('tasks as t')
+	const [validTask] = await db('tasks as t')
 		.join('properties as p', 't.property_id', 'p.property_id')
 		.where({ manager_id: user_id, task_id })
-		.select('property_id');
+		.select('p.property_id');
 
 	// This could probably be more explicit
-	if (!task) {
+	if (!validTask) {
 		return {};
 	}
 
 	//Check for dependant guest_tasks
 	const [guest_task] = await db('guest_tasks')
 		.where({ task_id })
-		.select('guest_id')
-		.first();
+		.select('guest_id');
 
 	if (guest_task) {
 		// Remove the property_id from the task
-		const updated = await db('tasks')
+		const deleted = await db('tasks')
 			.where({ task_id })
 			.update({ property_id: 0 }, 'task_id');
 
-		return updated.length;
+		return { deleted };
 	} else {
 		// Delete the task
-		return db('tasks')
+		const deleted = await db('tasks')
 			.where({ task_id })
 			.del();
+
+		return { deleted };
 	}
 }
