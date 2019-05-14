@@ -51,8 +51,8 @@ async function inviteUser(manager_id, email) {
 		from: `${manager_id}@well-broomed.com`,
 		to: email,
 		subject: "Well-Broomed Invitation",
-		html: "Hello! You have been invited to join a property management team on Well-Broomed.
-			   If you would like to accept this invitation, please click this link: www.well-broomed.com/accept/" + inviteCode
+		html: "Hello! You have been invited to join a property management team on Well-Broomed." + 
+			  "If you would like to accept this invitation, please click this link: www.well-broomed.com/accept/" + inviteCode,
 	}
 
 	mailgun.messages().send(data, function (err, body) {
