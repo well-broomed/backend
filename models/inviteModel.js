@@ -6,7 +6,6 @@ const randomString = require('../helpers/randomString');
 const mailgunKey = process.env.MAILGUN_KEY
 const mailgunDomain = process.env.MAILGUN_URL
 const Mailgun = require('mailgun-js');
-const 
 
 module.exports = {
 	inviteUser,
