@@ -22,17 +22,28 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 		// Find user else create a new one
 		const user =
 			(await userModel.getUserByEmail(email)) ||
-			(await userModel.addUser(user_name, email, img_url, role));
+			(await userModel.addUser(
+				user_name,
+				email,
+				img_url,
+				inviteCode ? 'assistant' : role
+			));
 
 		if (user.notUnique) {
 			// user_name and/or email are already taken
-			res.status(403).json({ notUnique });
+			res.status(409).json({ notUnique });
 		}
 
 		// Attempt to accept invite if provided with inviteCode
 		const inviteStatus =
-			inviteCode &&
-			(await inviteModel.acceptInvite(email, inviteCode, user.user_id));
+			user.role === 'manager'
+				? 'notAssistant'
+				: inviteCode &&
+				  (await inviteModel.acceptInvite(
+						user.email,
+						inviteCode,
+						user.user_id
+				  ));
 
 		// Make a new token with the user data from our backend
 		const userInfo = generateToken(user, exp);
