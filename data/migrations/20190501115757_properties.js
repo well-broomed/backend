@@ -25,6 +25,10 @@ exports.up = function(knex, Promise) {
 		table.string('guest_guide', 256);
 
 		table.string('assistant_guide', 256);
+
+		table.unique(['manager_id', 'property_name']);
+
+		table.unique(['manager_id', 'address']);
 	});
 };
 

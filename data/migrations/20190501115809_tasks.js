@@ -11,6 +11,8 @@ exports.up = function(knex, Promise) {
 		table.string('text', 128).notNullable();
 
 		table.integer('deadline').notNullable();
+
+		table.unique('property_id', 'text', 'deadline');
 	});
 };
 
