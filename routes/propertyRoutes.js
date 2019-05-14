@@ -63,9 +63,9 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		assistant_guide
 	} = req.body;
 
-  if (role !== 'manager') {
-    return res.status(403).json(error: 'not a manager')
-  }
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
 
 	try {
 		if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) {
@@ -82,7 +82,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		);
 
 		if (notUnique) {
-			return res.status(403).json({ notUnique });
+			return res.status(409).json({ notUnique });
 		}
 
 		res.status(201).json({ property_id });
@@ -95,6 +95,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 /** Update a property */
 router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id: manager_id, role } = req.user;
+	const { property_id } = req.params;
 	const {
 		property_name,
 		address,
@@ -103,17 +104,18 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		assistant_guide
 	} = req.body;
 
-  if (role !== 'manager') {
-    return res.status(403).json(error: 'not a manager')
-  }
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
 
 	try {
 		if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) {
 			return res.status(404).json({ error: 'invalid assistant' });
 		}
 
-		const { property_id, notUnique } = await propertyModel.updateProperty(
+		const { updated, notUnique } = await propertyModel.updateProperty(
 			manager_id,
+			property_id,
 			property_name,
 			address,
 			cleaner_id,
@@ -122,10 +124,14 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		);
 
 		if (notUnique) {
-			return res.status(403).json({ notUnique });
+			return res.status(409).json({ notUnique });
 		}
 
-		res.status(200).json({ property_id });
+		if (!updated) {
+			return res.status(404).json({ error: 'invalid property' });
+		}
+
+		res.status(200).json({ updated });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
