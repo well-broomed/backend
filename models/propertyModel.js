@@ -8,7 +8,9 @@ module.exports = {
 	getProperty,
 	addProperty,
 	updateProperty,
-	checkOwner
+	checkOwner,
+	getCleaners,
+	changeCleaner,
 };
 
 async function getProperties(user_id, role) {
@@ -123,4 +125,19 @@ function checkOwner(manager_id, property_id) {
 		.where({ manager_id, property_id })
 		.select('property_id')
 		.first();
+}
+
+function getCleaners(manager_id){
+	return db('partners')
+		.where({manager_id})
+		.select('cleaner_id')
+}
+
+async function changeCleaner(property_id, cleaner_id){
+	const [updated] = await db('properties')
+		.returning('*')
+		.where({property_id})
+		.update({cleaner_id});
+		
+		return {updated};
 }

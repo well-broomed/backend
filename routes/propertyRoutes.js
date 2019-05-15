@@ -142,4 +142,6 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
+
+
 module.exports = router;
