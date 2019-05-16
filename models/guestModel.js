@@ -5,7 +5,10 @@ const Promise = require('bluebird');
 module.exports = {
 	getGuests,
 	getGuest,
-	addGuest
+	addGuest,
+	updateCleaner,
+	checkCleaner,
+	updateGuestTask
 };
 
 function getGuests(user_id, role) {
@@ -24,20 +27,30 @@ function getGuests(user_id, role) {
 				.select('p.manager_id', 'g.*');
 }
 
-function getGuest(user_id, guest_id, role) {
+async function getGuest(user_id, guest_id, role) {
 	// This implementation doesn't support managers as assistants to other managers
-	return role === 'manager'
-		? db('guests as g')
-				.join('properties as p', 'g.property_id', 'p.property_id')
-				.where({ manager_id: user_id, guest_id })
-				.select('g.*')
-				.first()
-		: db('properties')
-				.join('properties as p', 'g.property_id', 'p.property_id')
-				.join('partners', 'p.manager_id', 'partners.manager_id')
-				.where({ 'partners.cleaner_id': user_id, guest_id })
-				.select('g.*')
-				.first();
+	const guest =
+		role === 'manager'
+			? await db('guests as g')
+					.join('properties as p', 'g.property_id', 'p.property_id')
+					.where({ manager_id: user_id, guest_id })
+					.select('g.*')
+					.first()
+			: await db('properties')
+					.join('properties as p', 'g.property_id', 'p.property_id')
+					.join('partners', 'p.manager_id', 'partners.manager_id')
+					.where({ 'partners.cleaner_id': user_id, guest_id })
+					.select('g.*')
+					.first();
+
+	const tasks = guest
+		? await db('guest_tasks as gt')
+				.where({ guest_id })
+				.join('tasks as t', 'gt.task_id', 't.task_id')
+				.select('t.task_id', 'text', 'completed')
+		: [];
+
+	return { ...guest, tasks };
 }
 
 async function addGuest(
@@ -96,4 +109,31 @@ async function addGuest(
 
 		return { guest_id };
 	});
+}
+
+async function updateCleaner(manager_id, guest_id, cleaner_id) {
+	const valid = await db('guests as g')
+		.join('properties as p', 'g.property_id', 'p.property_id')
+		.where({ manager_id, guest_id });
+
+	const updated =
+		valid &&
+		(await db('guests')
+			.where({ guest_id })
+			.update({ cleaner_id }));
+
+	return updated;
+}
+
+function checkCleaner(cleaner_id, guest_id) {
+	return db('guests')
+		.where({ cleaner_id, guest_id })
+		.select('guest_id')
+		.first();
+}
+
+function updateGuestTask(guest_id, task_id, completed) {
+	return db('guest_tasks')
+		.where({ guest_id, task_id })
+		.update({ completed });
 }
