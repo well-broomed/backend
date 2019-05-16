@@ -2,6 +2,11 @@ const db = require('../data/dbConfig');
 
 const randomString = require('../helpers/randomString');
 
+//Mailgun variables
+const mailgunKey = process.env.MAILGUN_KEY
+const mailgunDomain = process.env.MAILGUN_URL
+const Mailgun = require('mailgun-js');
+
 module.exports = {
 	inviteUser,
 	acceptInvite
@@ -29,8 +34,8 @@ async function inviteUser(manager_id, email) {
 		return { alreadyInvited: true };
 	}
 
-	// Generate an inviteCode
-	const inviteCode = randomString(16);
+	// // Generate an inviteCode
+	 const inviteCode = randomString(16);
 
 	// Create an invite
 	const [invite] = await db('invites').insert(
@@ -38,9 +43,28 @@ async function inviteUser(manager_id, email) {
 		'inviteCode'
 	);
 
-	console.log(`Invite code '${invite}' sent to ${email}`);
+	//MailGun 
+	const mailgun = new Mailgun({apiKey: mailgunKey, domain: mailgunDomain});
+	
+	//Content of Email Being Sent
+	const data = {
+		from: `${manager_id}@well-broomed.com`,
+		to: email,
+		subject: "Well-Broomed Invitation",
+		html: "Hello! You have been invited to join a property management team on Well-Broomed." + 
+			  "If you would like to accept this invitation, please click this link: " + `${process.env.serverURL}/accept/` + inviteCode,
+	}
 
-	return { inviteCode: invite };
+	mailgun.messages().send(data, function (err, body) {
+		if (err) {
+			console.log("Mailgun got an error: ", err);
+			return {mailgunErr : err};
+		}
+		else
+			console.log('body:', body);
+	});
+
+	return { inviteCode: data };
 }
 
 async function acceptInvite(email, inviteCode, cleaner_id) {
