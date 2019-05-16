@@ -7,6 +7,7 @@ module.exports = {
 	getGuest,
 	addGuest,
 	updateGuest,
+	removeGuest,
 	updateGuestTask,
 	checkManager,
 	checkCleaner
@@ -114,6 +115,27 @@ async function updateGuest(guest_id, guestInfo) {
 		.update(guestInfo, 'guest_id');
 
 	return { updated };
+}
+
+async function removeGuest(guest_id) {
+	// Start a transaction
+	return db.transaction(async trx => {
+		// Delete guest_tasks
+		await trx('guest_tasks')
+			.where({ guest_id })
+			.del();
+
+		// Delete the guest
+		const deleted = await trx('guests')
+			.where({ guest_id })
+			.del();
+
+		if (!deleted) {
+			trx.rollback();
+		}
+
+		return deleted;
+	});
 }
 
 function updateGuestTask(guest_id, task_id, completed) {

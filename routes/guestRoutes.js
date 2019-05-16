@@ -164,6 +164,36 @@ router.put('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
+/** Delete guest */
+router.delete('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+	const { guest_id } = req.params;
+
+	// Check role
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
+
+	try {
+		// Check guest manager
+		if (!(await guestModel.checkManager(user_id, guest_id))) {
+			return res.status(404).json({ error: 'invalid guest' });
+		}
+
+		// Remove guest
+		const deleted = await guestModel.removeGuest(guest_id);
+
+		if (!deleted) {
+			return res.status(500).json({ error: 'something went wrong' });
+		}
+
+		res.status(200).json({ deleted });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
+
 /** Update guest_task */
 router.put(
 	'/:guest_id/tasks/:task_id',
