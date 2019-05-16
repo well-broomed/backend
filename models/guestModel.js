@@ -7,9 +7,9 @@ module.exports = {
 	getGuest,
 	addGuest,
 	updateGuest,
-	updateCleaner,
-	checkCleaner,
-	updateGuestTask
+	updateGuestTask,
+	checkManager,
+	checkCleaner
 };
 
 function getGuests(user_id, role) {
@@ -54,17 +54,12 @@ async function getGuest(user_id, guest_id, role) {
 	return { ...guest, tasks };
 }
 
-async function addGuest(
-	property_id,
-	guest_name,
-	checkin,
-	checkout,
-	email,
-	cleaner_id
-) {
+async function addGuest(guestInfo) {
+	const { property_id, guest_name, checkin, checkout } = guestInfo;
+
 	const [notUnique] = await db('guests')
 		.where({ property_id, guest_name, checkin, checkout })
-		.select('guest_id');
+		.select('guest_name');
 
 	if (notUnique) {
 		return { notUnique };
@@ -73,23 +68,11 @@ async function addGuest(
 	// Start a transaction
 	return db.transaction(async trx => {
 		// Add a new guest
-		const [guest_id] = await trx('guests').insert(
-			{
-				property_id,
-				guest_name,
-				checkin,
-				checkout,
-				email,
-				cleaner_id
-			},
-			'guest_id'
-		);
+		const [guest_id] = await trx('guests').insert(guestInfo, 'guest_id');
 
 		if (!guest_id) {
 			trx.rollback();
 		}
-
-		console.log('guest_id:', guest_id);
 
 		// Get tasks by property_id
 		const tasks = await trx('tasks')
@@ -112,73 +95,49 @@ async function addGuest(
 	});
 }
 
-async function updateGuest(
-	manager_id,
-	guest_id,
-	property_id,
-	guest_name,
-	checkin,
-	checkout,
-	email,
-	cleaner_id
-) {
-	const valid = await db('guests as g')
-		.join('properties as p', 'g.property_id', 'p.property_id')
-		.where({ manager_id, guest_id });
+async function updateGuest(guest_id, guestInfo) {
+	// Need to fix this later.
+	// const { property_id, guest_name, checkin, checkout } = guestInfo;
 
-	if (!valid) {
-		return {};
-	}
+	// const [notUnique] = await db('guests')
+	// 	.where({ property_id, guest_name, checkin, checkout })
+	// 	.andWhereNot({ guest_id })
+	// 	.select('guest_name');
 
-	const [notUnique] = await db('guests')
-		.where({ property_id, guest_name, checkin, checkout })
-		.andWhereNot({ guest_id })
-		.select('guest_id');
+	// if (notUnique) {
+	// 	return { notUnique };
+	// }
 
-	if (notUnique) {
-		return { notUnique };
-	}
 	// Update a guest
 	const [updated] = await db('guests')
 		.where({ guest_id })
-		.update(
-			{
-				property_id,
-				guest_name,
-				checkin,
-				checkout,
-				email,
-				cleaner_id
-			},
-			'guest_id'
-		);
+		.update(guestInfo, 'guest_id');
 
 	return { updated };
-}
-
-async function updateCleaner(manager_id, guest_id, cleaner_id) {
-	const valid = await db('guests as g')
-		.join('properties as p', 'g.property_id', 'p.property_id')
-		.where({ manager_id, guest_id });
-
-	const updated =
-		valid &&
-		(await db('guests')
-			.where({ guest_id })
-			.update({ cleaner_id }));
-
-	return updated;
-}
-
-function checkCleaner(cleaner_id, guest_id) {
-	return db('guests')
-		.where({ cleaner_id, guest_id })
-		.select('guest_id')
-		.first();
 }
 
 function updateGuestTask(guest_id, task_id, completed) {
 	return db('guest_tasks')
 		.where({ guest_id, task_id })
 		.update({ completed });
+}
+
+function checkManager(manager_id, guest_id) {
+	return db('guests as g')
+		.join('properties as p', 'g.property_id', 'p.property_id')
+		.where({ manager_id, guest_id })
+		.select('guest_id')
+		.first();
+}
+
+function checkCleaner(cleaner_id, guest_id) {
+	return (
+		db('guests')
+			.where({ cleaner_id, guest_id })
+			.select('guest_id')
+			.first() ||
+		db('guests as g')
+			.join('properties as p', 'g.property_id', 'p.property_id')
+			.where({ manager_id: cleaner_id, guest_id })
+	);
 }
