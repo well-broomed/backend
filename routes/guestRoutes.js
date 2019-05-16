@@ -87,6 +87,61 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
+/** Update a guest */
+router.put('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+	const { guest_id } = req.params;
+	const {
+		guest_name,
+		property_id,
+		checkin,
+		checkout,
+		email,
+		cleaner_id
+	} = req.body;
+
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
+
+	try {
+		const valid = await propertyModel.checkOwner(user_id, property_id);
+
+		if (!valid) {
+			return res.status(404).json({ error: 'invalid property' });
+		}
+
+		// Need to update this to take availability into account
+		if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
+			return res.status(404).json({ error: 'invalid assistant' });
+		}
+
+		const { updated, notUnique } = await guestModel.updateGuest(
+			user_id,
+			guest_id,
+			property_id,
+			guest_name,
+			checkin,
+			checkout,
+			email,
+			cleaner_id
+		);
+
+		if (notUnique) {
+			return res.status(409).json({ notUnique });
+		}
+
+		if (!updated) {
+			return res.status(404).json({ error: 'invalid guest' });
+		}
+
+		res.status(200).json({ updated });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
+
 /** Update guest cleaner */
 router.put(
 	'/:guest_id/assistant/:cleaner_id',
@@ -100,12 +155,12 @@ router.put(
 			return res.status(403).json({ error: 'not a manager' });
 		}
 
-		// Need to update this to take availability into account
-		if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
-			return res.status(404).json({ error: 'invalid assistant' });
-		}
-
 		try {
+			// Need to update this to take availability into account
+			if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
+				return res.status(404).json({ error: 'invalid assistant' });
+			}
+
 			const updated = await guestModel.updateCleaner(
 				user_id,
 				guest_id,

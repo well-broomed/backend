@@ -6,6 +6,7 @@ module.exports = {
 	getGuests,
 	getGuest,
 	addGuest,
+	updateGuest,
 	updateCleaner,
 	checkCleaner,
 	updateGuestTask
@@ -109,6 +110,50 @@ async function addGuest(
 
 		return { guest_id };
 	});
+}
+
+async function updateGuest(
+	manager_id,
+	guest_id,
+	property_id,
+	guest_name,
+	checkin,
+	checkout,
+	email,
+	cleaner_id
+) {
+	const valid = await db('guests as g')
+		.join('properties as p', 'g.property_id', 'p.property_id')
+		.where({ manager_id, guest_id });
+
+	if (!valid) {
+		return {};
+	}
+
+	const [notUnique] = await db('guests')
+		.where({ property_id, guest_name, checkin, checkout })
+		.andWhereNot({ guest_id })
+		.select('guest_id');
+
+	if (notUnique) {
+		return { notUnique };
+	}
+	// Update a guest
+	const [updated] = await db('guests')
+		.where({ guest_id })
+		.update(
+			{
+				property_id,
+				guest_name,
+				checkin,
+				checkout,
+				email,
+				cleaner_id
+			},
+			'guest_id'
+		);
+
+	return { updated };
 }
 
 async function updateCleaner(manager_id, guest_id, cleaner_id) {
