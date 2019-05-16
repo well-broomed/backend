@@ -87,16 +87,21 @@ async function updateProperty(
 	assistant_guide
 ) {
 	const notUniqueProperties = await db('properties')
-		.where({ manager_id, property_name })
-		.orWhere({ manager_id, address })
+		.whereNot({ property_id })
+		.andWhere({ manager_id, property_name })
+		.orWhereNot({ property_id })
+		.andWhere({ manager_id, address })
 		.select('property_id', 'property_name', 'address');
 
-	const notUnique = checkForDuplicates(
-		{ property_name, address },
-		notUniqueProperties,
-		'property_name',
-		{ key: 'property_id', value: property_id }
-	);
+	console.log('notUniqueProperties:', notUniqueProperties);
+
+	const notUnique =
+		notUniqueProperties[0] &&
+		(await checkForDuplicates(
+			{ property_name, address },
+			notUniqueProperties,
+			'property_name'
+		));
 
 	if (notUnique) return { notUnique };
 
