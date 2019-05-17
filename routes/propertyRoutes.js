@@ -142,6 +142,10 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
+/**
+ * Delete a property
+ */
+
 
 
 module.exports = router;
