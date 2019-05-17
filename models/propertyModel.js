@@ -1,7 +1,7 @@
 const db = require('../data/dbConfig');
 
 // Helpers
-const checkForDuplicates = require('../Helpers/checkForDuplicates');
+const checkForDuplicates = require('../helpers/checkForDuplicates');
 
 module.exports = {
 	getProperties,
@@ -15,7 +15,6 @@ module.exports = {
 
 	checkCleaner,
 	updateAvailability
-
 };
 
 async function getProperties(user_id, role) {
@@ -110,20 +109,19 @@ function checkOwner(manager_id, property_id) {
 		.first();
 }
 
-
-function getCleaners(manager_id){
+function getCleaners(manager_id) {
 	return db('partners')
-		.where({manager_id})
-		.select('cleaner_id')
+		.where({ manager_id })
+		.select('cleaner_id');
 }
 
-async function changeCleaner(property_id, cleaner_id){
+async function changeCleaner(property_id, cleaner_id) {
 	const [updated] = await db('properties')
 		.returning('*')
-		.where({property_id})
-		.update({cleaner_id});
-		
-		return {updated};
+		.where({ property_id })
+		.update({ cleaner_id });
+
+	return { updated };
 }
 
 function checkCleaner(cleaner_id, property_id) {
@@ -147,4 +145,3 @@ async function updateAvailability(cleaner_id, property_id, available) {
 				.where({ cleaner_id, property_id })
 				.del();
 }
-
