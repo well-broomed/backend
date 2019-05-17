@@ -150,4 +150,54 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
+/** Update availability */
+router.put(
+	'/:property_id/available/:cleaner_id*?',
+	checkJwt,
+	checkUserInfo,
+	async (req, res) => {
+		const { user_id, role } = req.user;
+		const { property_id, cleaner_id } = req.params;
+		const { available } = req.body;
+
+		// If cleaner_id is provided, user_id is the property manager
+		if (cleaner_id && +cleaner_id !== user_id && role !== 'manager') {
+			return res.status(403).json({ error: 'not a manager' });
+		}
+
+		try {
+			// Check property manager
+			if (
+				cleaner_id &&
+				!(await propertyModel.checkOwner(user_id, property_id))
+			) {
+				return res.status(404).json({ error: 'invalid property' });
+			}
+
+			// Check partnership
+			if (
+				!(await propertyModel.checkCleaner(cleaner_id || user_id, property_id))
+			) {
+				return res.status(404).json({ error: 'invalid assistant' });
+			}
+
+			// Add or remove availability
+			const updated = await propertyModel.updateAvailability(
+				cleaner_id || user_id,
+				property_id,
+				available
+			);
+
+			if (!updated) {
+				return res.status(500).json({ error: 'something went wrong' });
+			}
+
+			res.status(200).json({ updated });
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error });
+		}
+	}
+);
+
 module.exports = router;
