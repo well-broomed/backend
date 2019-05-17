@@ -7,11 +7,14 @@ const logger = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 
+// Helpers
+const corsConfig = require('./config/corsConfig');
+
 server.use(logger('tiny'));
 server.use(cors());
+server.use(cors(corsConfig));
 server.use(helmet());
 server.use(express.json());
-
 
 // Sanity check
 server.get('/', (req, res) => {
