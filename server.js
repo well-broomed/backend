@@ -12,6 +12,7 @@ server.use(cors());
 server.use(helmet());
 server.use(express.json());
 
+
 // Sanity check
 server.get('/', (req, res) => {
 	res.send(`It works.`);

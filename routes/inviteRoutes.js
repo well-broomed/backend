@@ -33,7 +33,6 @@ router.get('/accept/:inviteCode', checkJwt, checkUserInfo, (req, res) => {
 router.post('/', checkJwt, checkUserInfo, (req, res) => {
 	const { user_id: manager_id, role } = req.user;
 	const { cleaner_email } = req.body;
-
 	// TODO: verify arguments are properly formatted and respond with errors for bad strings
 
 	// Verify that user is a manager
@@ -48,10 +47,13 @@ router.post('/', checkJwt, checkUserInfo, (req, res) => {
 
 	inviteModel
 		.inviteUser(manager_id, cleaner_email)
-		.then(({ alreadyInvited, alreadyPartnered, inviteCode }) => {
+		.then(({ alreadyInvited, alreadyPartnered, inviteCode, mailgunErr }) => {
 			if (!inviteCode) {
 				res.status(403).json({ alreadyInvited, alreadyPartnered });
-			} else {
+			}
+			else if(mailgunErr)
+				res.status(403).json({mailgunErr});
+			else {
 				res.status(201).json({ inviteCode });
 			}
 		})
