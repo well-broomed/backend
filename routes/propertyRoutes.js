@@ -150,6 +150,13 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
+
+/**
+ * Delete a property
+ */
+
+
+
 /** Update availability */
 router.put(
 	'/:property_id/available/:cleaner_id*?',
@@ -199,5 +206,6 @@ router.put(
 		}
 	}
 );
+
 
 module.exports = router;

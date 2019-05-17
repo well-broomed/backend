@@ -3,13 +3,25 @@ const db = require('../data/dbConfig');
 module.exports = {
 	getUserByEmail,
 	addUser,
+<<<<<<< HEAD
+	getUserById,
+=======
 	getPartner
+>>>>>>> dev
 };
 
 function getUserByEmail(email) {
 	return db('users')
 		.where({ email })
 		.first();
+}
+
+async function getUserById(user_id){
+	const user = await db('users')
+		.where({user_id})
+		.first();
+
+	return user;
 }
 
 async function addUser(user_name, email, img_url, role) {

@@ -9,8 +9,13 @@ module.exports = {
 	addProperty,
 	updateProperty,
 	checkOwner,
+
+	getCleaners,
+	changeCleaner,
+
 	checkCleaner,
 	updateAvailability
+
 };
 
 async function getProperties(user_id, role) {
@@ -105,6 +110,22 @@ function checkOwner(manager_id, property_id) {
 		.first();
 }
 
+
+function getCleaners(manager_id){
+	return db('partners')
+		.where({manager_id})
+		.select('cleaner_id')
+}
+
+async function changeCleaner(property_id, cleaner_id){
+	const [updated] = await db('properties')
+		.returning('*')
+		.where({property_id})
+		.update({cleaner_id});
+		
+		return {updated};
+}
+
 function checkCleaner(cleaner_id, property_id) {
 	return db('properties')
 		.join('partners', 'properties.manager_id', 'partners.manager_id')
@@ -126,3 +147,4 @@ async function updateAvailability(cleaner_id, property_id, available) {
 				.where({ cleaner_id, property_id })
 				.del();
 }
+
