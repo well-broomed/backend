@@ -36,15 +36,9 @@ function getProperty(user_id, property_id, role) {
 				.first();
 }
 
-async function addProperty(
-	manager_id,
-	property_name,
-	address,
-	img_url,
-	cleaner_id,
-	guest_guide,
-	assistant_guide
-) {
+async function addProperty(propertyInfo) {
+	const { manager_id, property_name, address } = propertyInfo;
+
 	// Check for duplicate property names and addresses
 	const notUniqueProperties = await db('properties')
 		.where({ manager_id, property_name })
@@ -59,63 +53,47 @@ async function addProperty(
 			'property_name'
 		));
 
-	if (notUnique) return { notUnique };
+	if (notUnique) {
+		return { notUnique };
+	}
 
 	// Add new property
 	const [property_id] = await db('properties').insert(
-		{
-			manager_id,
-			property_name,
-			address,
-			img_url,
-			cleaner_id,
-			guest_guide,
-			assistant_guide
-		},
+		propertyInfo,
 		'property_id'
 	);
 
 	return { property_id };
 }
 
-async function updateProperty(
-	manager_id,
-	property_id,
-	property_name,
-	address,
-	img_url,
-	cleaner_id,
-	guest_guide,
-	assistant_guide
-) {
-	const notUniqueProperties = await db('properties')
-		.where({ manager_id, property_name })
-		.orWhere({ manager_id, address })
-		.select('property_id', 'property_name', 'address');
+async function updateProperty(manager_id, property_id, propertyInfo) {
+	// Will update this later. Needs to handle undefined property_name and/or address
+	// const { property_name, address } = propertyInfo;
 
-	const notUnique = checkForDuplicates(
-		{ property_name, address },
-		notUniqueProperties,
-		'property_name',
-		{ key: 'property_id', value: property_id }
-	);
+	// // Check for duplicate property names and addresses
+	// const notUniqueProperties = await db('properties')
+	// 	.whereNot({ property_id })
+	// 	.andWhere({ manager_id, property_name })
+	// 	.orWhereNot({ property_id })
+	// 	.andWhere({ manager_id, address })
+	// 	.select('property_id', 'property_name', 'address');
 
-	if (notUnique) return { notUnique };
+	// console.log('notUniqueProperties:', notUniqueProperties);
+
+	// const notUnique =
+	// 	notUniqueProperties[0] &&
+	// 	(await checkForDuplicates(
+	// 		{ property_name, address },
+	// 		notUniqueProperties,
+	// 		'property_name'
+	// 	));
+
+	// if (notUnique) return { notUnique };
 
 	// Update property
-	const [updated] = await db('properties')
-		.where({ property_id })
-		.update(
-			{
-				property_name,
-				address,
-				img_url,
-				cleaner_id,
-				guest_guide,
-				assistant_guide
-			},
-			'property_id'
-		);
+	const updated = await db('properties')
+		.where({ manager_id, property_id })
+		.update(propertyInfo);
 
 	return { updated };
 }

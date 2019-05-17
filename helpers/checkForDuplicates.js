@@ -1,12 +1,9 @@
-const checkForDuplicates = (properties, array, identifier, excluding) => {
+const checkForDuplicates = (properties, array, identifier) => {
 	const notUnique = {};
 
 	for (const [key, value] of Object.entries(properties)) {
 		array.forEach(object => {
-			if (
-				!(excluding && object[excluding.key] == excluding.value) &&
-				object[key] == value
-			) {
+			if (object[key] == value) {
 				notUnique[key] = object[identifier];
 			}
 		});

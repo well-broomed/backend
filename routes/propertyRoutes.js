@@ -64,6 +64,16 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		assistant_guide
 	} = req.body;
 
+	const propertyInfo = {
+		manager_id,
+		property_name,
+		address,
+		img_url,
+		cleaner_id,
+		guest_guide,
+		assistant_guide
+	};
+
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
 	}
@@ -74,13 +84,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		}
 
 		const { property_id, notUnique } = await propertyModel.addProperty(
-			manager_id,
-			property_name,
-			address,
-			img_url,
-			cleaner_id,
-			guest_guide,
-			assistant_guide
+			propertyInfo
 		);
 
 		if (notUnique) {
@@ -96,7 +100,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 
 /** Update a property */
 router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
-	const { user_id: manager_id, role } = req.user;
+	const { user_id, role } = req.user;
 	const { property_id } = req.params;
 	const {
 		property_name,
@@ -107,24 +111,28 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		assistant_guide
 	} = req.body;
 
+	const propertyInfo = {
+		property_name,
+		address,
+		img_url,
+		cleaner_id,
+		guest_guide,
+		assistant_guide
+	};
+
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
 	}
 
 	try {
-		if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) {
+		if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
 			return res.status(404).json({ error: 'invalid assistant' });
 		}
 
 		const { updated, notUnique } = await propertyModel.updateProperty(
-			manager_id,
+			user_id,
 			property_id,
-			property_name,
-			address,
-			img_url,
-			cleaner_id,
-			guest_guide,
-			assistant_guide
+			propertyInfo
 		);
 
 		if (notUnique) {
