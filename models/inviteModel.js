@@ -3,8 +3,8 @@ const db = require('../data/dbConfig');
 const randomString = require('../helpers/randomString');
 
 //Mailgun variables
-const mailgunKey = process.env.MAILGUN_KEY
-const mailgunDomain = process.env.MAILGUN_URL
+const mailgunKey = process.env.MAILGUN_KEY;
+const mailgunDomain = process.env.MAILGUN_URL;
 const Mailgun = require('mailgun-js');
 
 module.exports = {
@@ -35,7 +35,7 @@ async function inviteUser(manager_id, email) {
 	}
 
 	// // Generate an inviteCode
-	 const inviteCode = randomString(16);
+	const inviteCode = randomString(16);
 
 	// Create an invite
 	const [invite] = await db('invites').insert(
@@ -43,28 +43,30 @@ async function inviteUser(manager_id, email) {
 		'inviteCode'
 	);
 
-	//MailGun 
-	const mailgun = new Mailgun({apiKey: mailgunKey, domain: mailgunDomain});
-	
-	//Content of Email Being Sent
-	const data = {
-		from: `${manager_id}@well-broomed.com`,
-		to: email,
-		subject: "Well-Broomed Invitation",
-		html: "Hello! You have been invited to join a property management team on Well-Broomed." + 
-			  "If you would like to accept this invitation, please click this link: " + `${process.env.serverURL}/accept/` + inviteCode,
-	}
+	// //MailGun
+	// const mailgun = new Mailgun({apiKey: mailgunKey, domain: mailgunDomain});
 
-	mailgun.messages().send(data, function (err, body) {
-		if (err) {
-			console.log("Mailgun got an error: ", err);
-			return {mailgunErr : err};
-		}
-		else
-			console.log('body:', body);
-	});
+	// //Content of Email Being Sent
+	// const data = {
+	// 	from: `${manager_id}@well-broomed.com`,
+	// 	to: email,
+	// 	subject: "Well-Broomed Invitation",
+	// 	html: "Hello! You have been invited to join a property management team on Well-Broomed." +
+	// 		  "If you would like to accept this invitation, please click this link: " + `${process.env.serverURL}/accept/` + inviteCode,
+	// }
 
-	return { inviteCode: data };
+	// mailgun.messages().send(data, function (err, body) {
+	// 	if (err) {
+	// 		console.log("Mailgun got an error: ", err);
+	// 		return {mailgunErr : err};
+	// 	}
+	// 	else
+	// 		console.log('body:', body);
+	// });
+
+	// return { inviteCode: data };
+
+	return { inviteCode: invite };
 }
 
 async function acceptInvite(email, inviteCode, cleaner_id) {
