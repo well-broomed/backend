@@ -3,11 +3,8 @@ const db = require('../data/dbConfig');
 module.exports = {
 	getUserByEmail,
 	addUser,
-<<<<<<< HEAD
 	getUserById,
-=======
 	getPartner
->>>>>>> dev
 };
 
 function getUserByEmail(email) {
