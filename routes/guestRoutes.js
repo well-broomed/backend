@@ -87,6 +87,8 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(500).json({ error: 'something went wrong' });
 		}
 
+		// TODO: notify cleaner of new guest
+
 		res.status(200).json({ guest_id });
 	} catch (error) {
 		console.error(error);
@@ -156,6 +158,8 @@ router.put('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 		if (!updated) {
 			return res.status(500).json({ error: 'something went wrong' });
 		}
+
+		// TODO: notify new cleaner and previous cleaner if reassigned
 
 		res.status(200).json({ updated });
 	} catch (error) {
@@ -231,5 +235,69 @@ router.put(
 		}
 	}
 );
+
+/** Request a reassignment */
+router.post(
+	'/:guest_id/reassign/:cleaner_id',
+	checkJwt,
+	checkUserInfo,
+	async (req, res) => {
+		const { user_id } = req.user;
+		const { guest_id, cleaner_id } = req.params;
+
+		try {
+			// Check cleaner
+			if (!(await guestModel.checkCleaner(user_id, guest_id))) {
+				return res.status(404).json({ error: 'invalid guest' });
+			}
+
+			// Create reassignment request
+			const { requested, notUnique } = await guestModel.reassignCleaner(
+				guest_id,
+				cleaner_id
+			);
+
+			if (notUnique) {
+				return res.status(409).json({ notUnique });
+			}
+
+			if (!requested) {
+				return res.status(404).json({ error: 'invalid assistant' });
+			}
+
+			res.status(200).json({ requested });
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error });
+		}
+	}
+);
+
+/** Cancel a reassignment */
+
+/** Respond to a reassignment request */
+router.put('/:guest_id/reassign', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id } = req.user;
+	const { guest_id } = req.params;
+	const { accepted } = req.body;
+
+	try {
+		// Create reassignment request
+		const { updated } = await guestModel.acceptReassignment(
+			guest_id,
+			user_id,
+			accepted
+		);
+
+		if (!updated) {
+			return res.status(404).json({ error: 'invalid request' });
+		}
+
+		res.status(200).json({ updated });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
 
 module.exports = router;

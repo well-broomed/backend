@@ -9,8 +9,13 @@ module.exports = {
 	addProperty,
 	updateProperty,
 	checkOwner,
+
 	getCleaners,
 	changeCleaner,
+
+	checkCleaner,
+	updateAvailability
+
 };
 
 async function getProperties(user_id, role) {
@@ -105,6 +110,7 @@ function checkOwner(manager_id, property_id) {
 		.first();
 }
 
+
 function getCleaners(manager_id){
 	return db('partners')
 		.where({manager_id})
@@ -119,3 +125,26 @@ async function changeCleaner(property_id, cleaner_id){
 		
 		return {updated};
 }
+
+function checkCleaner(cleaner_id, property_id) {
+	return db('properties')
+		.join('partners', 'properties.manager_id', 'partners.manager_id')
+		.where({ property_id, 'partners.cleaner_id': cleaner_id })
+		.select('property_id')
+		.first();
+}
+
+// Doesn't check for existing entries; can possibly return ugly errors
+async function updateAvailability(cleaner_id, property_id, available) {
+	console.log('stuff:', { cleaner_id, property_id, available });
+
+	return available
+		? (await db('available_properties').insert(
+				{ cleaner_id, property_id },
+				'cleaner_id'
+		  ))[0]
+		: await db('available_properties')
+				.where({ cleaner_id, property_id })
+				.del();
+}
+
