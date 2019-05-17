@@ -1,5 +1,7 @@
 const db = require('../data/dbConfig');
 
+const moment = require('moment');
+
 const Promise = require('bluebird');
 
 module.exports = {
@@ -10,7 +12,9 @@ module.exports = {
 	removeGuest,
 	updateGuestTask,
 	checkManager,
-	checkCleaner
+	checkCleaner,
+	reassignCleaner,
+	acceptReassignment
 };
 
 function getGuests(user_id, role) {
@@ -162,4 +166,61 @@ function checkCleaner(cleaner_id, guest_id) {
 			.join('properties as p', 'g.property_id', 'p.property_id')
 			.where({ manager_id: cleaner_id, guest_id })
 	);
+}
+
+async function reassignCleaner(guest_id, cleaner_id) {
+	const [partnered] = await db('guests as g')
+		.join('properties as p', 'g.property_id', 'p.property_id')
+		.join('partners as prt', 'p.manager_id', 'prt.manager_id')
+		.where({ 'prt.cleaner_id': cleaner_id })
+		.select('prt.cleaner_id');
+
+	if (!partnered) {
+		return {};
+	}
+
+	const [notUnique] = await db('reassignments')
+		.where({ guest_id, cleaner_id })
+		.select('timestamp');
+
+	if (notUnique) {
+		return { notUnique };
+	}
+
+	const [requested] = await db('reassignments').insert(
+		{
+			guest_id,
+			cleaner_id,
+			timestamp: moment.utc(Date.now())
+		},
+		'timestamp'
+	);
+
+	return { requested };
+}
+
+async function acceptReassignment(guest_id, cleaner_id, accepted) {
+	return db.transaction(async trx => {
+		const status = await trx('reassignments')
+			.where({ guest_id, cleaner_id })
+			.update({ status: accepted ? 1 : 2, timestamp: moment.utc(Date.now()) });
+
+		if (!status) {
+			trx.rollback();
+		}
+
+		if (!accepted) {
+			return { updated: status };
+		}
+
+		const updated = await trx('guests')
+			.where({ guest_id })
+			.update({ cleaner_id });
+
+		if (!updated) {
+			trx.rollback();
+		}
+
+		return { updated };
+	});
 }
