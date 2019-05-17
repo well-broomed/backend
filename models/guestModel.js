@@ -5,7 +5,12 @@ const Promise = require('bluebird');
 module.exports = {
 	getGuests,
 	getGuest,
-	addGuest
+	addGuest,
+	updateGuest,
+	removeGuest,
+	updateGuestTask,
+	checkManager,
+	checkCleaner
 };
 
 function getGuests(user_id, role) {
@@ -24,33 +29,38 @@ function getGuests(user_id, role) {
 				.select('p.manager_id', 'g.*');
 }
 
-function getGuest(user_id, guest_id, role) {
+async function getGuest(user_id, guest_id, role) {
 	// This implementation doesn't support managers as assistants to other managers
-	return role === 'manager'
-		? db('guests as g')
-				.join('properties as p', 'g.property_id', 'p.property_id')
-				.where({ manager_id: user_id, guest_id })
-				.select('g.*')
-				.first()
-		: db('properties')
-				.join('properties as p', 'g.property_id', 'p.property_id')
-				.join('partners', 'p.manager_id', 'partners.manager_id')
-				.where({ 'partners.cleaner_id': user_id, guest_id })
-				.select('g.*')
-				.first();
+	const guest =
+		role === 'manager'
+			? await db('guests as g')
+					.join('properties as p', 'g.property_id', 'p.property_id')
+					.where({ manager_id: user_id, guest_id })
+					.select('g.*')
+					.first()
+			: await db('properties')
+					.join('properties as p', 'g.property_id', 'p.property_id')
+					.join('partners', 'p.manager_id', 'partners.manager_id')
+					.where({ 'partners.cleaner_id': user_id, guest_id })
+					.select('g.*')
+					.first();
+
+	const tasks = guest
+		? await db('guest_tasks as gt')
+				.where({ guest_id })
+				.join('tasks as t', 'gt.task_id', 't.task_id')
+				.select('t.task_id', 'text', 'completed')
+		: [];
+
+	return { ...guest, tasks };
 }
 
-async function addGuest(
-	property_id,
-	guest_name,
-	checkin,
-	checkout,
-	email,
-	cleaner_id
-) {
+async function addGuest(guestInfo) {
+	const { property_id, guest_name, checkin, checkout } = guestInfo;
+
 	const [notUnique] = await db('guests')
 		.where({ property_id, guest_name, checkin, checkout })
-		.select('guest_id');
+		.select('guest_name');
 
 	if (notUnique) {
 		return { notUnique };
@@ -59,23 +69,11 @@ async function addGuest(
 	// Start a transaction
 	return db.transaction(async trx => {
 		// Add a new guest
-		const [guest_id] = await trx('guests').insert(
-			{
-				property_id,
-				guest_name,
-				checkin,
-				checkout,
-				email,
-				cleaner_id
-			},
-			'guest_id'
-		);
+		const [guest_id] = await trx('guests').insert(guestInfo, 'guest_id');
 
 		if (!guest_id) {
 			trx.rollback();
 		}
-
-		console.log('guest_id:', guest_id);
 
 		// Get tasks by property_id
 		const tasks = await trx('tasks')
@@ -96,4 +94,72 @@ async function addGuest(
 
 		return { guest_id };
 	});
+}
+
+async function updateGuest(guest_id, guestInfo) {
+	// Need to fix this later.
+	// const { property_id, guest_name, checkin, checkout } = guestInfo;
+
+	// const [notUnique] = await db('guests')
+	// 	.where({ property_id, guest_name, checkin, checkout })
+	// 	.andWhereNot({ guest_id })
+	// 	.select('guest_name');
+
+	// if (notUnique) {
+	// 	return { notUnique };
+	// }
+
+	// Update a guest
+	const [updated] = await db('guests')
+		.where({ guest_id })
+		.update(guestInfo, 'guest_id');
+
+	return { updated };
+}
+
+async function removeGuest(guest_id) {
+	// Start a transaction
+	return db.transaction(async trx => {
+		// Delete guest_tasks
+		await trx('guest_tasks')
+			.where({ guest_id })
+			.del();
+
+		// Delete the guest
+		const deleted = await trx('guests')
+			.where({ guest_id })
+			.del();
+
+		if (!deleted) {
+			trx.rollback();
+		}
+
+		return deleted;
+	});
+}
+
+function updateGuestTask(guest_id, task_id, completed) {
+	return db('guest_tasks')
+		.where({ guest_id, task_id })
+		.update({ completed });
+}
+
+function checkManager(manager_id, guest_id) {
+	return db('guests as g')
+		.join('properties as p', 'g.property_id', 'p.property_id')
+		.where({ manager_id, guest_id })
+		.select('guest_id')
+		.first();
+}
+
+function checkCleaner(cleaner_id, guest_id) {
+	return (
+		db('guests')
+			.where({ cleaner_id, guest_id })
+			.select('guest_id')
+			.first() ||
+		db('guests as g')
+			.join('properties as p', 'g.property_id', 'p.property_id')
+			.where({ manager_id: cleaner_id, guest_id })
+	);
 }
