@@ -1,5 +1,7 @@
 const db = require('../data/dbConfig');
 
+const knex = require('knex');
+
 // Helpers
 const checkForDuplicates = require('../helpers/checkForDuplicates');
 
@@ -17,27 +19,61 @@ module.exports = {
 	updateAvailability
 };
 
-async function getProperties(user_id, role) {
+function getProperties(user_id, role) {
 	// This implementation doesn't support managers as assistants to other managers
+	const managerPropertyFields =
+		'p.property_id, p.property_name, p.cleaner_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
+
+	const assistantPropertyFields =
+		'p.property_id, p.property_name, p.manager_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
+
 	return role === 'manager'
-		? db('properties').where({ manager_id: user_id })
-		: db('properties')
-				.join('partners', 'partners.manager_id', 'properties.manager_id')
-				.where({ 'partners.cleaner_id': user_id })
-				.select('properties.*');
+		? db('properties as p')
+				.where({ manager_id: user_id })
+				.leftJoin('tasks as t', 'p.property_id', 't.property_id')
+				.select(
+					knex.raw(
+						`${managerPropertyFields}, count(t.property_id) as task_count`
+					)
+				)
+				.groupByRaw(managerPropertyFields)
+				.orderBy('property_name') // Could be improved by using natural-sort
+		: db('properties as p')
+				.join('partners as prt', 'p.manager_id', 'prt.manager_id')
+				.where({ 'prt.cleaner_id': user_id })
+				.leftJoin(
+					'available_properties as ap',
+					'p.property_id',
+					'ap.property_id'
+				)
+				.leftJoin('tasks as t', 'p.property_id', 't.property_id')
+				.select(
+					knex.raw(
+						`${assistantPropertyFields}, count(t.property_id) as task_count`
+					)
+				)
+				.groupByRaw(assistantPropertyFields)
+				.orderBy('property_name'); // Could be improved by using natural-sort
 }
 
-function getProperty(user_id, property_id, role) {
+async function getProperty(user_id, property_id, role) {
 	// This implementation doesn't support managers as assistants to other managers
-	return role === 'manager'
-		? db('properties')
-				.where({ manager_id: user_id, property_id })
-				.first()
-		: db('properties')
-				.join('partners', 'partners.manager_id', 'properties.manager_id')
-				.where({ 'partners.cleaner_id': user_id, property_id })
-				.select('properties.*')
-				.first();
+	const property =
+		role === 'manager'
+			? await db('properties')
+					.where({ manager_id: user_id, property_id })
+					.first()
+			: await db('properties')
+					.join('partners', 'partners.manager_id', 'properties.manager_id')
+					.where({ 'partners.cleaner_id': user_id, property_id })
+					.select('properties.*')
+					.first();
+
+	if (!property) return {};
+
+	const tasks = await db('tasks').where({ property_id });
+
+	return { property: { ...property, tasks } };
 }
 
 async function addProperty(propertyInfo) {
