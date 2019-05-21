@@ -2,6 +2,8 @@ const db = require('../data/dbConfig');
 
 const knex = require('knex');
 
+const Promise = require('bluebird');
+
 // Helpers
 const checkForDuplicates = require('../helpers/checkForDuplicates');
 
@@ -19,41 +21,54 @@ module.exports = {
 	updateAvailability
 };
 
-function getProperties(user_id, role) {
-	// This implementation doesn't support managers as assistants to other managers
+async function getProperties(user_id, role) {
 	const managerPropertyFields =
 		'p.property_id, p.property_name, p.cleaner_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
 
 	const assistantPropertyFields =
 		'p.property_id, p.property_name, p.manager_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
 
-	return role === 'manager'
-		? db('properties as p')
-				.where({ manager_id: user_id })
-				.leftJoin('tasks as t', 'p.property_id', 't.property_id')
-				.select(
-					knex.raw(
-						`${managerPropertyFields}, count(t.property_id) as task_count`
+	const properties =
+		role === 'manager'
+			? await db('properties as p')
+					.where({ manager_id: user_id })
+					.leftJoin('tasks as t', 'p.property_id', 't.property_id')
+					.select(
+						knex.raw(
+							`${managerPropertyFields}, count(t.property_id) as task_count`
+						)
 					)
-				)
-				.groupByRaw(managerPropertyFields)
-				.orderBy('property_name') // Could be improved by using natural-sort
-		: db('properties as p')
-				.join('partners as prt', 'p.manager_id', 'prt.manager_id')
-				.where({ 'prt.cleaner_id': user_id })
-				.leftJoin(
-					'available_properties as ap',
-					'p.property_id',
-					'ap.property_id'
-				)
-				.leftJoin('tasks as t', 'p.property_id', 't.property_id')
-				.select(
-					knex.raw(
-						`${assistantPropertyFields}, count(t.property_id) as task_count`
+					.groupByRaw(managerPropertyFields)
+					.orderBy('property_name') // Could be improved by using natural-sort
+			: await db('properties as p')
+					.join('partners as prt', 'p.manager_id', 'prt.manager_id')
+					.where({ 'prt.cleaner_id': user_id })
+					.leftJoin(
+						'available_properties as ap',
+						'p.property_id',
+						'ap.property_id'
 					)
-				)
-				.groupByRaw(assistantPropertyFields)
-				.orderBy('property_name'); // Could be improved by using natural-sort
+					.leftJoin('tasks as t', 'p.property_id', 't.property_id')
+					.select(
+						knex.raw(
+							`${assistantPropertyFields}, count(t.property_id) as task_count`
+						)
+					)
+					.groupByRaw(assistantPropertyFields)
+					.orderBy('property_name'); // Could be improved by using natural-sort
+
+	if (role !== 'manager') return properties;
+
+	return await Promise.map(properties, async property => {
+		const available_cleaners = await db('available_properties as ap')
+			.where({
+				property_id: property.property_id
+			})
+			.join('users as u', 'ap.cleaner_id', 'u.user_id')
+			.select('ap.cleaner_id', 'u.user_name as cleaner_name');
+
+		return { ...property, available_cleaners };
+	});
 }
 
 async function getProperty(user_id, property_id, role) {
@@ -73,7 +88,14 @@ async function getProperty(user_id, property_id, role) {
 
 	const tasks = await db('tasks').where({ property_id });
 
-	return { property: { ...property, tasks } };
+	const available_cleaners = await db('available_properties as ap')
+		.where({
+			property_id: property.property_id
+		})
+		.join('users as u', 'ap.cleaner_id', 'u.user_id')
+		.select('ap.cleaner_id', 'u.user_name as cleaner_name');
+
+	return { ...property, tasks, available_cleaners };
 }
 
 async function addProperty(propertyInfo) {
