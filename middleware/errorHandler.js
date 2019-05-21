@@ -1,9 +1,11 @@
-module.exports = (err, req, res) => {
-	console.log('ERROR HANDLER:');
+module.exports = (err, req, res, next) => {
+	// console.log('ERROR HANDLER:');
+	// console.log(err);
+
 	const errors = {
-		pNoId: {
-			code: 404,
-			message: 'Project with specified ID does not exist.'
+		UnauthorizedError: {
+			code: 401,
+			message: 'Invalid auth0 token'
 		},
 
 		errorId: {
@@ -12,6 +14,10 @@ module.exports = (err, req, res) => {
 		}
 	};
 
-	const error = errors[err];
-	res.status(error.code).json(error);
+	const error = errors[err.name || err];
+
+	if (!error) {
+		next();
+	}
+	res.status(error.code).json({ error: error.message });
 };
