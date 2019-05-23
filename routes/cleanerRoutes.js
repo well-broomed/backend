@@ -58,7 +58,7 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 router.get('/partners', checkJwt, checkUserInfo, async (req, res) => {
 	try{
 		const manager_id = req.user.user_id;
-		const partners = await propertyModels.getPartners(manager_id);
+		const partners = await propertyModel.getPartners(manager_id);
 		return res.status(200).json({partners});
 	}
 	catch(error){
