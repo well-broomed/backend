@@ -56,4 +56,18 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	}
 });
 
+
+router.put('/update-user', checkJwt, checkUserInfo, async (req, res) => {
+	let user = req.user;
+
+	console.log('old user', user);
+
+	let newUser = {...user, ...req.body};
+
+	console.log('new user', newUser);
+
+	return res.status(200).json({newUser});
+
+})
+
 module.exports = router;
