@@ -50,7 +50,7 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 		const userInfo = generateToken(user, exp);
 
 		// Return user info
-		res.status(200).json({ userInfo, inviteStatus });
+		res.status(200).json({ userInfo, inviteStatus, user });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
