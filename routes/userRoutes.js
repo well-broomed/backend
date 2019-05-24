@@ -4,6 +4,7 @@ const router = express.Router();
 
 // Middleware
 const checkJwt = require('../middleware/checkJwt');
+const checkUserInfo = require('../middleware/checkUserInfo');
 
 // Helpers
 const userModel = require('../models/userModel');
