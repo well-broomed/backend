@@ -4,6 +4,7 @@ const router = express.Router();
 
 // Middleware
 const checkJwt = require('../middleware/checkJwt');
+const checkUserInfo  = require('../middleware/checkUserInfo');
 
 // Helpers
 const userModel = require('../models/userModel');
@@ -49,11 +50,25 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 		const userInfo = generateToken(user, exp);
 
 		// Return user info
-		res.status(200).json({ userInfo, inviteStatus });
+		res.status(200).json({ userInfo, inviteStatus, user });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
 	}
 });
+
+
+router.put('/update-user', checkJwt, checkUserInfo, async (req, res) => {
+	let user = req.user;
+
+	console.log('old user', user);
+
+	let newUser = {...user, ...req.body};
+
+	console.log('new user', newUser);
+
+	return res.status(200).json({newUser});
+
+})
 
 module.exports = router;
