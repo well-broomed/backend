@@ -6,12 +6,15 @@ const server = express();
 const logger = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
+const errorHandler = require('./middleware/errorHandler');
+
+// Helpers
+const corsConfig = require('./config/corsConfig');
 
 server.use(logger('tiny'));
-server.use(cors());
+server.use(cors(corsConfig));
 server.use(helmet());
 server.use(express.json());
-
 
 // Sanity check
 server.get('/', (req, res) => {
@@ -33,5 +36,8 @@ server.use('/api/properties', propertyRoutes);
 server.use('/api/tasks', taskRoutes);
 server.use('/api/guests', guestRoutes);
 server.use('/api/cleaners', cleanerRoutes);
+
+// Error handler
+server.use(errorHandler);
 
 module.exports = server;

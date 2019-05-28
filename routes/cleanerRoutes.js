@@ -3,8 +3,8 @@ const express = require('express');
 const router = express.Router();
 
 // Middleware
-const checkJwt = require('../Middleware/checkJwt');
-const checkUserInfo = require('../Middleware/checkUserInfo');
+const checkJwt = require('../middleware/checkJwt');
+const checkUserInfo = require('../middleware/checkUserInfo');
 
 // Helpers
 const userModel = require('../models/userModel');
@@ -49,6 +49,19 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 
 		
 	}catch(error){
+		console.log(error);
+		return res.status(500).json({error});
+	}
+});
+
+
+router.get('/partners', checkJwt, checkUserInfo, async (req, res) => {
+	try{
+		const manager_id = req.user.user_id;
+		const partners = await propertyModel.getPartners(manager_id);
+		return res.status(200).json({partners});
+	}
+	catch(error){
 		console.log(error);
 		return res.status(500).json({error});
 	}

@@ -3,8 +3,8 @@ const express = require('express');
 const router = express.Router();
 
 // Middleware
-const checkJwt = require('../Middleware/checkJwt');
-const checkUserInfo = require('../Middleware/checkUserInfo');
+const checkJwt = require('../middleware/checkJwt');
+const checkUserInfo = require('../middleware/checkUserInfo');
 
 // Helpers
 const userModel = require('../models/userModel');
