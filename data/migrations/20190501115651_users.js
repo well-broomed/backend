@@ -19,6 +19,8 @@ exports.up = function(knex, Promise) {
 		table.string('phone', 32);
 
 		table.string('address', 256);
+
+		table.string('auth_provider', 128).notNullable();
 	});
 };
 

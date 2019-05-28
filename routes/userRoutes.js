@@ -18,21 +18,24 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	const { inviteCode } = req.params;
 
 	// TODO: verify arguments are properly formatted and respond with errors for bad strings
-
+	
 	try {
 		// Find user else create a new one
+		const auth_provider = req.user.sub.split('|');
+		
 		const user =
 			(await userModel.getUserByEmail(email)) ||
 			(await userModel.addUser(
 				user_name,
 				email,
 				img_url,
-				inviteCode ? 'assistant' : role
+				inviteCode ? 'assistant' : role,
+				auth_provider[0]
 			));
 
 		if (user.notUnique) {
 			// user_name and/or email are already taken
-			res.status(409).json({ notUnique });
+			return res.status(409).json({ notUnique });
 		}
 
 		// Attempt to accept invite if provided with inviteCode
@@ -50,10 +53,11 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 		const userInfo = generateToken(user, exp);
 
 		// Return user info
-		res.status(200).json({ userInfo, inviteStatus, user });
+		console.log(req.user);
+		return res.status(200).json({ userInfo, inviteStatus, user });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
