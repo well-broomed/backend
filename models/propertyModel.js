@@ -1,7 +1,11 @@
 const db = require('../data/dbConfig');
 
+const knex = require('knex');
+
+const Promise = require('bluebird');
+
 // Helpers
-const checkForDuplicates = require('../Helpers/checkForDuplicates');
+const checkForDuplicates = require('../helpers/checkForDuplicates');
 
 module.exports = {
 	getProperties,
@@ -12,33 +16,87 @@ module.exports = {
 
 	getCleaners,
 	changeCleaner,
+	getPartners,
 
 	checkCleaner,
 	updateAvailability
-
 };
 
 async function getProperties(user_id, role) {
-	// This implementation doesn't support managers as assistants to other managers
-	return role === 'manager'
-		? db('properties').where({ manager_id: user_id })
-		: db('properties')
-				.join('partners', 'partners.manager_id', 'properties.manager_id')
-				.where({ 'partners.cleaner_id': user_id })
-				.select('properties.*');
+	const managerPropertyFields =
+		'p.property_id, p.property_name, p.cleaner_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
+
+	const assistantPropertyFields =
+		'p.property_id, p.property_name, p.manager_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
+
+	const properties =
+		role === 'manager'
+			? await db('properties as p')
+					.where({ manager_id: user_id })
+					.leftJoin('tasks as t', 'p.property_id', 't.property_id')
+					.select(
+						knex.raw(
+							`${managerPropertyFields}, count(t.property_id) as task_count`
+						)
+					)
+					.groupByRaw(managerPropertyFields)
+					.orderBy('property_name') // Could be improved by using natural-sort
+			: await db('properties as p')
+					.join('partners as prt', 'p.manager_id', 'prt.manager_id')
+					.where({ 'prt.cleaner_id': user_id })
+					.leftJoin(
+						'available_properties as ap',
+						'p.property_id',
+						'ap.property_id'
+					)
+					.leftJoin('tasks as t', 'p.property_id', 't.property_id')
+					.select(
+						knex.raw(
+							`${assistantPropertyFields}, count(t.property_id) as task_count`
+						)
+					)
+					.groupByRaw(assistantPropertyFields)
+					.orderBy('property_name'); // Could be improved by using natural-sort
+
+	if (role !== 'manager') return properties;
+
+	return await Promise.map(properties, async property => {
+		const available_cleaners = await db('available_properties as ap')
+			.where({
+				property_id: property.property_id
+			})
+			.join('users as u', 'ap.cleaner_id', 'u.user_id')
+			.select('ap.cleaner_id', 'u.user_name as cleaner_name');
+
+		return { ...property, available_cleaners };
+	});
 }
 
-function getProperty(user_id, property_id, role) {
+async function getProperty(user_id, property_id, role) {
 	// This implementation doesn't support managers as assistants to other managers
-	return role === 'manager'
-		? db('properties')
-				.where({ manager_id: user_id, property_id })
-				.first()
-		: db('properties')
-				.join('partners', 'partners.manager_id', 'properties.manager_id')
-				.where({ 'partners.cleaner_id': user_id, property_id })
-				.select('properties.*')
-				.first();
+	const property =
+		role === 'manager'
+			? await db('properties')
+					.where({ manager_id: user_id, property_id })
+					.first()
+			: await db('properties')
+					.join('partners', 'partners.manager_id', 'properties.manager_id')
+					.where({ 'partners.cleaner_id': user_id, property_id })
+					.select('properties.*')
+					.first();
+
+	if (!property) return {};
+
+	const tasks = await db('tasks').where({ property_id });
+
+	const available_cleaners = await db('available_properties as ap')
+		.where({
+			property_id: property.property_id
+		})
+		.join('users as u', 'ap.cleaner_id', 'u.user_id')
+		.select('ap.cleaner_id', 'u.user_name as cleaner_name');
+
+	return { ...property, tasks, available_cleaners };
 }
 
 async function addProperty(propertyInfo) {
@@ -110,20 +168,27 @@ function checkOwner(manager_id, property_id) {
 		.first();
 }
 
-
-function getCleaners(manager_id){
+function getCleaners(manager_id) {
 	return db('partners')
-		.where({manager_id})
-		.select('cleaner_id')
+		.where({ manager_id })
+		.select('cleaner_id');
 }
 
-async function changeCleaner(property_id, cleaner_id){
+async function getPartners(manager_id){
+	 const partners = await db('users')
+	 	.join('partners', 'users.user_id', 'partners.cleaner_id')
+	 	.where({manager_id})
+	 	.select('*');
+	return partners;
+}
+
+async function changeCleaner(property_id, cleaner_id) {
 	const [updated] = await db('properties')
 		.returning('*')
-		.where({property_id})
-		.update({cleaner_id});
-		
-		return {updated};
+		.where({ property_id })
+		.update({ cleaner_id });
+
+	return { updated };
 }
 
 function checkCleaner(cleaner_id, property_id) {
@@ -147,4 +212,3 @@ async function updateAvailability(cleaner_id, property_id, available) {
 				.where({ cleaner_id, property_id })
 				.del();
 }
-
