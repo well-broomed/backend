@@ -13,7 +13,7 @@ const propertyModel = require('../models/propertyModel');
 // Routes
 /** Get tasks by property_id */
 
-router.get('/property/:property_id', checkJwt, checkUserInfo, (req, res) => {
+router.get('/p/:property_id', checkJwt, checkUserInfo, (req, res) => {
 
 	const property_id = req.params.property_id;
 
@@ -27,7 +27,7 @@ router.get('/property/:property_id', checkJwt, checkUserInfo, (req, res) => {
 	})
 });
 
-router.get('/list/:list_id', checkJwt, checkUserInfo, (req, res) => {
+router.get('/l/:list_id', checkJwt, checkUserInfo, (req, res) => {
 	const list_id = req.params.list_id;
 
 	taskModel.getByList(list_id).then(status => {
