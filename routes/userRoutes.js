@@ -4,11 +4,7 @@ const router = express.Router();
 
 // Middleware
 const checkJwt = require('../middleware/checkJwt');
-<<<<<<< HEAD
-const checkUserInfo = require('../middleware/checkUserInfo');
-=======
 const checkUserInfo  = require('../middleware/checkUserInfo');
->>>>>>> dev
 
 // Helpers
 const userModel = require('../models/userModel');
@@ -17,11 +13,7 @@ const generateToken = require('../helpers/generateToken');
 
 /* Check for a valid token, add the user to our db if they aren't registered, and create a partnership if provided a valid invite code */
 router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
-<<<<<<< HEAD
-	const { name: user_name, email, picture: img_url, exp } = req.user;
-=======
 	const { nickname: user_name, email, picture: img_url, exp } = req.user;
->>>>>>> dev
 	const { role } = req.body;
 	const { inviteCode } = req.params;
 
@@ -61,12 +53,8 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 		const userInfo = generateToken(user, exp);
 
 		// Return user info
-<<<<<<< HEAD
 		console.log(req.user);
 		return res.status(200).json({ userInfo, inviteStatus, user });
-=======
-		res.status(200).json({ userInfo, inviteStatus, user });
->>>>>>> dev
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({ error });

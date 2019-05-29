@@ -20,6 +20,14 @@ exports.up = function(knex, Promise) {
 		table.datetime('checkout', { useTz: false, precision: 0 }).notNullable();
 
 		table.string('email', 128);
+
+		table
+            .timestamp('createdAt')
+            .defaultTo(knex.fn.now());
+        
+        table
+            .timestamp('updatedAt')
+            .defaultTo(knex.fn.now());
 	});
 };
 

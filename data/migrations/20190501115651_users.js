@@ -12,15 +12,30 @@ exports.up = function(knex, Promise) {
 			.notNullable()
 			.unique();
 
-		table.string('role', 16).notNullable();
+		table
+			.string('role', 16)
+			.notNullable();
 
-		table.string('img_url', 256);
+		table
+			.string('img_url', 256);
 
-		table.string('phone', 32);
+		table
+			.string('phone', 32);
 
-		table.string('address', 256);
+		table
+			.string('address', 256);
 
-		table.string('auth_provider', 128).notNullable();
+		table
+			.string('auth_provider', 128)
+			.notNullable();
+
+		table
+            .timestamp('createdAt')
+            .defaultTo(knex.fn.now());
+        
+        table
+            .timestamp('updatedAt')
+            .defaultTo(knex.fn.now());
 	});
 };
 

@@ -29,6 +29,14 @@ exports.up = function(knex, Promise) {
 		table.unique(['manager_id', 'property_name']);
 
 		table.unique(['manager_id', 'address']);
+
+		table
+            .timestamp('createdAt')
+            .defaultTo(knex.fn.now());
+        
+        table
+            .timestamp('updatedAt')
+            .defaultTo(knex.fn.now());
 	});
 };
 
