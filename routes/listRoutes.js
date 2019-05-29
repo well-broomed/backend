@@ -29,7 +29,7 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 });
 
 // Get all lists for a property
-router.get('/property/:property_id', checkJwt, checkUserInfo, (req, res) => {
+router.get('/:property_id', checkJwt, checkUserInfo, (req, res) => {
     const property_id = req.params.property_id;
 
     listModel.getByProperty(property_id).then(lists => {
@@ -73,8 +73,6 @@ router.put('/', checkJwt, checkUserInfo, (req, res) => {
         console.log(err);
         return res.status(500).json({error: `Internal server error.`})
     })
-
-
-})
+});
 
 module.exports = router;
