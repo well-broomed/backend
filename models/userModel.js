@@ -21,7 +21,7 @@ async function getUserById(user_id){
 	return user;
 }
 
-async function addUser(user_name, email, img_url, role) {
+async function addUser(user_name, email, img_url, role, auth_provider) {
 	// Is user_name or email already taken?
 	const [notUnique] = await db('users')
 		.where({ user_name })
@@ -40,7 +40,7 @@ async function addUser(user_name, email, img_url, role) {
 
 	// Add new user
 	const [user] = await db('users').insert(
-		{ user_name, email, img_url, role },
+		{ user_name, email, img_url, role, auth_provider },
 		'*'
 	);
 

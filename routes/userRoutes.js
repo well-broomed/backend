@@ -18,10 +18,12 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	const { inviteCode } = req.params;
 
 	// TODO: verify arguments are properly formatted and respond with errors for bad strings
-	
+	console.log(req.user.sub);
+
 	try {
 		// Find user else create a new one
 		const auth_provider = req.user.sub.split('|');
+		console.log('PROVIDER', auth_provider);
 		
 		const user =
 			(await userModel.getUserByEmail(email)) ||
@@ -62,7 +64,7 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 });
 
 
-router.put('/update-user', checkJwt, checkUserInfo, async (req, res) => {
+router.put('/', checkJwt, checkUserInfo, async (req, res) => {
 	let user = req.user;
 
 	console.log('old user', user);
