@@ -33,12 +33,13 @@ async function addTask(property_id, text, deadline) {
 		return { notUnique };
 	}
 
-	const [task_id] = await db('tasks').insert(
-		{ property_id, text, deadline },
-		'task_id'
-	);
+	const [task] = await db('tasks').insert({ property_id, text, deadline }, [
+		'task_id',
+		'text',
+		'deadline'
+	]);
 
-	return { task_id };
+	return { task };
 }
 
 async function updateTask(user_id, task_id, text, deadline) {

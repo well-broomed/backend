@@ -87,7 +87,9 @@ async function getProperty(user_id, property_id, role) {
 
 	if (!property) return {};
 
-	const tasks = await db('tasks').where({ property_id });
+	const tasks = await db('tasks')
+		.where({ property_id })
+		.select('task_id', 'text', 'deadline');
 
 	const available_cleaners = await db('available_properties as ap')
 		.where({

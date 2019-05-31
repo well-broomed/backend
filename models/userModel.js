@@ -2,9 +2,10 @@ const db = require('../data/dbConfig');
 
 module.exports = {
 	getUserByEmail,
-	addUser,
 	getUserById,
 	getPartner,
+	getAssistants,
+	addUser,
 	updateUser,
 };
 
@@ -14,12 +15,19 @@ function getUserByEmail(email) {
 		.first();
 }
 
-async function getUserById(user_id){
+async function getUserById(user_id) {
 	const user = await db('users')
-		.where({user_id})
+		.where({ user_id })
 		.first();
 
 	return user;
+}
+
+function getAssistants(manager_id) {
+	return db('partners as prt')
+		.where({ manager_id })
+		.join('users as u', 'prt.cleaner_id', 'u.user_id')
+		.select('prt.cleaner_id', 'u.user_name');
 }
 
 async function addUser(user_name, email, img_url, role, auth_provider) {
