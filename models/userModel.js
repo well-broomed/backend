@@ -4,7 +4,8 @@ module.exports = {
 	getUserByEmail,
 	addUser,
 	getUserById,
-	getPartner
+	getPartner,
+	updateUser,
 };
 
 function getUserByEmail(email) {
@@ -53,4 +54,8 @@ function getPartner(manager_id, cleaner_id) {
 	return db('partners')
 		.where({ manager_id, cleaner_id })
 		.first();
+}
+
+function updateUser(user_id, changes){
+	return db('users').returning('*').where({user_id}).update(changes);
 }

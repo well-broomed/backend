@@ -11,6 +11,8 @@ const userModel = require('../models/userModel');
 const inviteModel = require('../models/inviteModel');
 const generateToken = require('../helpers/generateToken');
 
+const rp = require('request-promise');
+
 /* Check for a valid token, add the user to our db if they aren't registered, and create a partnership if provided a valid invite code */
 router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	const { nickname: user_name, email, picture: img_url, exp } = req.user;
@@ -64,17 +66,65 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 });
 
 
-router.put('/', checkJwt, checkUserInfo, async (req, res) => {
-	let user = req.user;
+router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
+	const user_id = req.params.user_id;
+	const changes = req.body;
 
-	console.log('old user', user);
+	// update auth0 with the new user information
+	const auth0id = req.user.sub;
 
-	let newUser = {...user, ...req.body};
+	const updateObj = {};
 
-	console.log('new user', newUser);
+	// parse which fields to send in the update
+	// we have to do this since auth0 uses 'username' and we use 'user_name'
+	if(changes.user_name){
+		updateObj.username = changes.user_name;
+	} else if (changes.password){
+		updateObj.password = changes.password;
+	}
 
-	return res.status(200).json({newUser});
+	const auth0user = {
+		uri: `${process.env.AUTH0_API}users/${auth0id}`,
+		headers: {
+			Authorization: `Bearer ${process.env.AUTH0_MANAGEMENT_JWT}`,
+		},
+		body: updateObj,
+		json: true,
+	}
 
+	rp.patch(auth0user).then(status => {
+		console.log('auth0 return status', status);
+		
+		// parse the returned updated auth0 user object for our internal api
+		const userUpdate = {
+			user_name: status.username,
+			email: status.email,
+			img_url: status.picture,
+		}
+
+		userModel.updateUser(user_id, userUpdate).then(status => {
+			console.log('internal status', status);
+		})
+	}).catch(err => {
+		console.log(err);
+	})
+
+
+
+
+
+
+
+	// update our database with the returned information
+
+	// usersDb.update(user_id, changes).then(status => {
+	// 	console.log('put response', status);
+	// 	return res.status(200).json({message: `User updated successfully.`, user: response[0]});
+	// }).catch(err => {
+	// 	console.log(err);
+	// 	return res.status(500).json({error: `Internal server error.`})
+	// })
+	return res.status(200).json({message: 'Success'});
 })
 
 module.exports = router;
