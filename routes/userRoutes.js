@@ -18,7 +18,9 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	const { nickname: user_name, email, picture: img_url, exp } = req.user;
 	const { role } = req.body;
 	const { inviteCode } = req.params;
+	console.log('login attempt');
 
+	
 	/**
 	 * TODO: Ensure that the user's username is their full name for social logins,
 	 * otherwise use the username given at sign-up for database logins.
