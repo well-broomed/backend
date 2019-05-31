@@ -40,20 +40,32 @@ async function getGuest(user_id, guest_id, role) {
 			? await db('guests as g')
 					.join('properties as p', 'g.property_id', 'p.property_id')
 					.where({ manager_id: user_id, guest_id })
-					.select('g.*')
+					.select(
+						'g.*',
+						'p.property_name',
+						'p.img_url',
+						'p.guest_guide',
+						'p.assistant_guide'
+					)
 					.first()
 			: await db('properties')
 					.join('properties as p', 'g.property_id', 'p.property_id')
 					.join('partners', 'p.manager_id', 'partners.manager_id')
 					.where({ 'partners.cleaner_id': user_id, guest_id })
-					.select('g.*')
+					.select(
+						'g.*',
+						'p.property_name',
+						'p.img_url',
+						'p.guest_guide',
+						'p.assistant_guide'
+					)
 					.first();
 
 	const tasks = guest
 		? await db('guest_tasks as gt')
 				.where({ guest_id })
 				.join('tasks as t', 'gt.task_id', 't.task_id')
-				.select('t.task_id', 'text', 'completed')
+				.select('t.task_id', 't.deadline', 'text', 'completed')
 		: [];
 
 	return { ...guest, tasks };
@@ -145,7 +157,7 @@ async function removeGuest(guest_id) {
 function updateGuestTask(guest_id, task_id, completed) {
 	return db('guest_tasks')
 		.where({ guest_id, task_id })
-		.update({ completed });
+		.update({ completed }, ['task_id', 'completed']);
 }
 
 function checkManager(manager_id, guest_id) {
