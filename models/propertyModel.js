@@ -16,6 +16,7 @@ module.exports = {
 
 	getCleaners,
 	changeCleaner,
+	getPartners,
 
 	checkCleaner,
 	updateAvailability
@@ -173,6 +174,14 @@ function getCleaners(manager_id) {
 	return db('partners')
 		.where({ manager_id })
 		.select('cleaner_id');
+}
+
+async function getPartners(manager_id){
+	 const partners = await db('users')
+	 	.join('partners', 'users.user_id', 'partners.cleaner_id')
+	 	.where({manager_id})
+	 	.select('*');
+	return partners;
 }
 
 async function changeCleaner(property_id, cleaner_id) {
