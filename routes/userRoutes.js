@@ -19,13 +19,16 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	const { role } = req.body;
 	const { inviteCode } = req.params;
 
+	/**
+	 * TODO: Ensure that the user's username is their full name for social logins,
+	 * otherwise use the username given at sign-up for database logins.
+	 */
+
 	// TODO: verify arguments are properly formatted and respond with errors for bad strings
-	console.log(req.user.sub);
 
 	try {
 		// Find user else create a new one
 		const auth_provider = req.user.sub.split('|');
-		console.log('PROVIDER', auth_provider);
 		
 		const user =
 			(await userModel.getUserByEmail(email)) ||
@@ -57,7 +60,6 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 		const userInfo = generateToken(user, exp);
 
 		// Return user info
-		console.log(req.user);
 		return res.status(200).json({ userInfo, inviteStatus, user });
 	} catch (error) {
 		console.error(error);
@@ -109,7 +111,11 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 
 		userModel.updateUser(user_id, userUpdate).then(status => {
 			console.log('internal status', status);
-			return res.status(200).json({user: status});
+
+			// refresh the userinfo token
+			const userInfo = generateToken(status, req.user.exp);
+		
+			return res.status(200).json({user: status[0], userInfo: userInfo});
 		}).catch(err => {
 			console.log(err);
 			return res.status(500).json({error: `Internal server error.`})
