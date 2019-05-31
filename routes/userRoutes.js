@@ -4,6 +4,7 @@ const router = express.Router();
 
 // Middleware
 const checkJwt = require('../middleware/checkJwt');
+const checkUserInfo = require('../middleware/checkUserInfo');
 
 // Helpers
 const userModel = require('../models/userModel');
@@ -50,6 +51,24 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 
 		// Return user info
 		res.status(200).json({ userInfo, inviteStatus });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
+
+/** Get assistants by manager_id */
+router.get('/assistants', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
+
+	try {
+		const assistants = await userModel.getAssistants(user_id);
+
+		res.status(200).json({ assistants });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
