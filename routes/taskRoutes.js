@@ -48,7 +48,7 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(403).json({ error: 'invalid property' });
 		}
 
-		const { task_id, notUnique } = await taskModel.addTask(
+		const { task, notUnique } = await taskModel.addTask(
 			property_id,
 			text,
 			deadline
@@ -58,7 +58,7 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(409).json({ notUnique });
 		}
 
-		res.status(200).json({ task_id });
+		res.status(200).json({ task });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
@@ -114,7 +114,7 @@ router.delete('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(403).json({ error: 'invalid task' });
 		}
 
-		res.status(200).json({ deleted });
+		res.status(200).json({ task_id });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
