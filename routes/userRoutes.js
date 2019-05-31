@@ -71,8 +71,11 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 	const changes = req.body;
 
 	// update auth0 with the new user information
+
+	// the auth0 api user id
 	const auth0id = req.user.sub;
 
+	// initialize the body object
 	const updateObj = {};
 
 	// parse which fields to send in the update
@@ -81,6 +84,8 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 		updateObj.username = changes.user_name;
 	} else if (changes.password){
 		updateObj.password = changes.password;
+	} else if (changes.email){
+		updateObj.email = changes.email;
 	}
 
 	const auth0user = {
@@ -104,27 +109,15 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 
 		userModel.updateUser(user_id, userUpdate).then(status => {
 			console.log('internal status', status);
+			return res.status(200).json({user: status});
+		}).catch(err => {
+			console.log(err);
+			return res.status(500).json({error: `Internal server error.`})
 		})
 	}).catch(err => {
 		console.log(err);
+		return res.status(500).json({error: `Internal server error.`})
 	})
-
-
-
-
-
-
-
-	// update our database with the returned information
-
-	// usersDb.update(user_id, changes).then(status => {
-	// 	console.log('put response', status);
-	// 	return res.status(200).json({message: `User updated successfully.`, user: response[0]});
-	// }).catch(err => {
-	// 	console.log(err);
-	// 	return res.status(500).json({error: `Internal server error.`})
-	// })
-	return res.status(200).json({message: 'Success'});
 })
 
 module.exports = router;
