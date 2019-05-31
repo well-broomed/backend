@@ -218,17 +218,17 @@ router.put(
 			}
 
 			// Update guest task
-			const updated = await guestModel.updateGuestTask(
+			const [updatedTask] = await guestModel.updateGuestTask(
 				guest_id,
 				task_id,
 				completed
 			);
 
-			if (!updated) {
+			if (!updatedTask) {
 				return res.status(404).json({ error: 'invalid task id' });
 			}
 
-			res.status(200).json({ updated });
+			res.status(200).json({ updatedTask });
 		} catch (error) {
 			console.error(error);
 			res.status(500).json({ error });
