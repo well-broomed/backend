@@ -6,6 +6,7 @@ const randomString = require('../helpers/randomString');
 const mailgunKey = process.env.MAILGUN_KEY;
 const mailgunDomain = process.env.MAILGUN_URL;
 const Mailgun = require('mailgun-js');
+const frontendUrl = process.env.REACT_APP_FRONTEND_URL || `http:/localhost:3000`;
 
 module.exports = {
 	inviteUser,
@@ -45,16 +46,17 @@ async function inviteUser(manager_id, email) {
 
 	//MailGun
 	const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
-
+	
+	const manager = await db('users').where({user_id: manager_id}).select('user_name')
 	//Content of Email Being Sent
 	const data = {
-		from: `${manager_id}@well-broomed.com`,
+		from: `${manager}@well-broomed.com`,
 		to: email,
 		subject: 'Well-Broomed Invitation',
 		html:
-			'Hello! You have been invited to join a property management team on Well-Broomed.' +
+			'Hello! You have been invited to join a property management team on Well Broomed.' +
 			'If you would like to accept this invitation, please click this link: ' +
-			`${process.env.serverURL}/accept/` +
+			`${frontendUrl}/invite/` +
 			inviteCode
 	};
 
@@ -65,7 +67,7 @@ async function inviteUser(manager_id, email) {
 		} else console.log('body:', body);
 	});
 
-	return { inviteCode: data };
+	return { inviteCode: invite };
 }
 
 async function acceptInvite(email, inviteCode, cleaner_id) {
