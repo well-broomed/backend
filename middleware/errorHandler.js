@@ -14,10 +14,17 @@ module.exports = (err, req, res, next) => {
 		}
 	};
 
-	const error = errors[err.name || err];
+	let error = errors[err.name || err];
 
 	if (!error) {
 		next();
 	}
-	res.status(error.code).json({ error: error.message });
+	if(error === undefined){
+		error = {
+			code: 999,
+			message: 'Oopsie woopsie we made a widdle fuggo boingo UwU'
+		}
+	}
+
+	return res.status(error.code).json({ error: error.message });
 };

@@ -51,6 +51,8 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	const { property_id } = req.params;
 	const { guest_name, checkin, checkout, email, cleaner_id } = req.body;
 
+	console.log('BEGIN ADD');
+
 	const guestInfo = {
 		property_id,
 		guest_name,
@@ -72,9 +74,15 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		}
 
 		// Check cleaner (need to update this to take availability into account)
-		if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
-			return res.status(404).json({ error: 'invalid assistant' });
-		}
+		// if(cleaner_id !== user_id){
+		// 	if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
+		// 		console.log('bad assistant')
+		// 		return res.status(404).json({ error: 'invalid assistant' });
+		// 	}
+		// }
+		
+
+		console.log('ADD GUEST 2');
 
 		// Add guest
 		const { guest_id, notUnique } = await guestModel.addGuest(guestInfo);
