@@ -4,7 +4,8 @@ module.exports = {
 	getTasks,
 	addTask,
 	updateTask,
-	removeTask
+	removeTask,
+	getByGuest,
 };
 
 function getTasks(user_id, property_id, role) {

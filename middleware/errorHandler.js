@@ -19,12 +19,6 @@ module.exports = (err, req, res, next) => {
 	if (!error) {
 		next();
 	}
-	if(error === undefined){
-		error = {
-			code: 999,
-			message: 'Oopsie woopsie we made a widdle fuggo boingo UwU'
-		}
-	}
 
 	return res.status(error.code).json({ error: error.message });
 };
