@@ -19,7 +19,7 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 		const properties = await propertyModel.getProperties(user_id, role);
 
 		if (!properties[0]) {
-			return res.status(404).json({ error: 'no properties found' });
+			return res.status(200).json({ message: 'no properties found' });
 		}
 
 		res.status(200).json({ properties });
