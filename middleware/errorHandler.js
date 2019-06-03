@@ -18,6 +18,8 @@ module.exports = (err, req, res, next) => {
 
 	if (!error) {
 		next();
+	} else if(error === undefined || error === null){
+		next();
 	}
 
 	return res.status(error.code).json({ error: error.message });
