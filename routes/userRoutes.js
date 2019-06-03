@@ -117,7 +117,6 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 
 	rp.patch(auth0user).then(status => {
-		console.log('auth0 return status', status);
 		
 		// parse the returned updated auth0 user object for our internal api
 		const userUpdate = {
@@ -127,7 +126,6 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 		}
 
 		userModel.updateUser(user_id, userUpdate).then(status => {
-			console.log('internal status', status);
 
 			// refresh the userinfo token
 			const userInfo = generateToken(status, req.user.exp);
