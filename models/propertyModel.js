@@ -45,9 +45,9 @@ async function getProperties(user_id, role) {
 					.join('partners as prt', 'p.manager_id', 'prt.manager_id')
 					.where({ 'prt.cleaner_id': user_id })
 					.leftJoin(
-						'available_properties as ap',
+						'available_cleaners as ac',
 						'p.property_id',
-						'ap.property_id'
+						'ac.property_id'
 					)
 					.leftJoin('tasks as t', 'p.property_id', 't.property_id')
 					.select(
@@ -61,12 +61,12 @@ async function getProperties(user_id, role) {
 	if (role !== 'manager') return properties;
 
 	return await Promise.map(properties, async property => {
-		const available_cleaners = await db('available_properties as ap')
+		const available_cleaners = await db('available_cleaners as ac')
 			.where({
 				property_id: property.property_id
 			})
-			.join('users as u', 'ap.cleaner_id', 'u.user_id')
-			.select('ap.cleaner_id', 'u.user_name as cleaner_name');
+			.join('users as u', 'ac.cleaner_id', 'u.user_id')
+			.select('ac.cleaner_id', 'u.user_name as cleaner_name');
 
 		return { ...property, available_cleaners };
 	});
@@ -91,12 +91,12 @@ async function getProperty(user_id, property_id, role) {
 		.where({ property_id })
 		.select('task_id', 'text', 'deadline');
 
-	const available_cleaners = await db('available_properties as ap')
+	const available_cleaners = await db('available_cleaners as ac')
 		.where({
 			property_id: property.property_id
 		})
-		.join('users as u', 'ap.cleaner_id', 'u.user_id')
-		.select('ap.cleaner_id', 'u.user_name as cleaner_name');
+		.join('users as u', 'ac.cleaner_id', 'u.user_id')
+		.select('ac.cleaner_id', 'u.user_name as cleaner_name');
 
 	return { ...property, tasks, available_cleaners };
 }
@@ -176,11 +176,11 @@ function getCleaners(manager_id) {
 		.select('cleaner_id');
 }
 
-async function getPartners(manager_id){
-	 const partners = await db('users')
-	 	.join('partners', 'users.user_id', 'partners.cleaner_id')
-	 	.where({manager_id})
-	 	.select('*');
+async function getPartners(manager_id) {
+	const partners = await db('users')
+		.join('partners', 'users.user_id', 'partners.cleaner_id')
+		.where({ manager_id })
+		.select('*');
 	return partners;
 }
 
@@ -206,11 +206,11 @@ async function updateAvailability(cleaner_id, property_id, available) {
 	console.log('stuff:', { cleaner_id, property_id, available });
 
 	return available
-		? (await db('available_properties').insert(
+		? (await db('available_cleaners').insert(
 				{ cleaner_id, property_id },
 				'cleaner_id'
 		  ))[0]
-		: await db('available_properties')
+		: await db('available_cleaners')
 				.where({ cleaner_id, property_id })
 				.del();
 }
