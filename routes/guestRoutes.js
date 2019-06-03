@@ -28,7 +28,7 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 
 /** Get a guest by guest_id */
 router.get('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
-	const { user_id, role } = req.user;
+	const { user_id, user_name, role } = req.user;
 	const { guest_id } = req.params;
 
 	try {
@@ -36,6 +36,14 @@ router.get('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 
 		if (!guest) {
 			return res.status(404).json({ error: 'guest not found' });
+		}
+
+		// Add manager to available cleaners
+		if (role === 'manager' && user_id !== guest.cleaner_id) {
+			guest.availableCleaners.push({
+				value: user_id,
+				label: user_name
+			});
 		}
 
 		res.status(200).json({ guest });
@@ -242,7 +250,7 @@ router.post(
 	checkJwt,
 	checkUserInfo,
 	async (req, res) => {
-		const { user_id } = req.user;
+		const { user_id, role } = req.user;
 		const { guest_id, cleaner_id } = req.params;
 
 		try {
@@ -251,21 +259,24 @@ router.post(
 				return res.status(404).json({ error: 'invalid guest' });
 			}
 
-			// Create reassignment request
-			const { requested, notUnique } = await guestModel.reassignCleaner(
+			// Create reassignment request or just assign manager
+			const { newCleaner, notUnique } = await guestModel.reassignCleaner(
 				guest_id,
-				cleaner_id
+				cleaner_id,
+				role
 			);
 
 			if (notUnique) {
 				return res.status(409).json({ notUnique });
 			}
 
-			if (!requested) {
+			if (!newCleaner) {
 				return res.status(404).json({ error: 'invalid assistant' });
 			}
 
-			res.status(200).json({ requested });
+			res.status(200).json({
+				newCleaner
+			});
 		} catch (error) {
 			console.error(error);
 			res.status(500).json({ error });
