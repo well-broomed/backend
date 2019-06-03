@@ -33,5 +33,5 @@ exports.up = function(knex, Promise) {
 };
 
 exports.down = function(knex, Promise) {
-	return knex.schema.dropTableIfExists('properties');
+	return knex.raw('DROP TABLE if exists properties cascade');
 };
