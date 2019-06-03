@@ -12,7 +12,7 @@ exports.up = function(knex, Promise) {
 
 		table.integer('deadline').notNullable();
 
-		table.unique('property_id', 'text', 'deadline');
+		table.unique(['property_id', 'text', 'deadline']);
 	});
 };
 

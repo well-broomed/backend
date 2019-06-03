@@ -80,9 +80,15 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		}
 
 		// Check cleaner (need to update this to take availability into account)
-		if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
-			return res.status(404).json({ error: 'invalid assistant' });
+		
+		// make an exception is the manager is self-cleaning
+		if(Number(cleaner_id) !== Number(user_id)){
+			if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
+				console.log('bad assistant')
+				return res.status(404).json({ error: 'invalid assistant' });
+			}
 		}
+		
 
 		// Add guest
 		const { guest_id, notUnique } = await guestModel.addGuest(guestInfo);

@@ -11,7 +11,7 @@ const errorHandler = require('./middleware/errorHandler');
 // Helpers
 const corsConfig = require('./config/corsConfig');
 
-server.use(logger('tiny'));
+server.use(logger('dev'));
 server.use(cors(corsConfig));
 server.use(helmet());
 server.use(express.json());

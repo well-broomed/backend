@@ -11,7 +11,6 @@ const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
 
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
-	console.log('get cleaners');
 	try{
 		const manager_id = req.user.user_id;
 		/**
@@ -35,8 +34,7 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 
         for(let i = 0; i < cleaner_ids.length; i++){
             userModel.getUserById(cleaner_ids[i]).then(profile => {
-                cleaner_profiles.push(profile);
-
+				cleaner_profiles.push(profile);
             /**
              * Once we have collected all of the profiles, 
              * pass the array of cleaner profiles to the front-end.

@@ -18,9 +18,7 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	const { nickname: user_name, email, picture: img_url, exp } = req.user;
 	const { role } = req.body;
 	const { inviteCode } = req.params;
-	console.log('login attempt');
 
-	
 	/**
 	 * TODO: Ensure that the user's username is their full name for social logins,
 	 * otherwise use the username given at sign-up for database logins.
@@ -119,7 +117,6 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 
 	rp.patch(auth0user).then(status => {
-		console.log('auth0 return status', status);
 		
 		// parse the returned updated auth0 user object for our internal api
 		const userUpdate = {
@@ -129,7 +126,6 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 		}
 
 		userModel.updateUser(user_id, userUpdate).then(status => {
-			console.log('internal status', status);
 
 			// refresh the userinfo token
 			const userInfo = generateToken(status, req.user.exp);

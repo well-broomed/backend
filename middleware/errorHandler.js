@@ -14,10 +14,13 @@ module.exports = (err, req, res, next) => {
 		}
 	};
 
-	const error = errors[err.name || err];
+	let error = errors[err.name || err];
 
 	if (!error) {
 		next();
+	} else if(error === undefined || error === null){
+		next();
 	}
-	res.status(error.code).json({ error: error.message });
+
+	return res.status(error.code).json({ error: error.message });
 };
