@@ -1,9 +1,12 @@
 const db = require('../data/dbConfig');
 
+const Promise = require('bluebird');
+
 module.exports = {
 	getTasks,
 	addTask,
 	updateTask,
+	updateDeadline,
 	removeTask
 };
 
@@ -104,8 +107,58 @@ async function updateTask(user_id, task_id, text, deadline) {
 			.where({ task_id })
 			.update({ text, deadline }, 'task_id');
 
-		return { updated };
+		return updated ? { updatedTasks: db('tasks').where({ property_id }) } : {};
 	}
+}
+
+async function updateDeadline(property_id, oldDeadline, newDeadline) {
+	// Get tasks by deadline
+	const tasks = await db('tasks')
+		.where({ property_id, deadline: oldDeadline })
+		.select('task_id', 'text');
+
+	if (!tasks.length) return {};
+
+	// Start a transaction
+	return db.transaction(async trx => {
+		const updated = await Promise.map(tasks, async ({ task_id, text }) => {
+			// Check for collisions
+			const notUnique = await trx('tasks')
+				.where({ deadline: newDeadline, text })
+				.first();
+
+			if (notUnique) {
+				// Check for dependant guest_tasks
+				const guest_task = await trx('guest_tasks')
+					.where({ task_id })
+					.select('guest_id')
+					.first();
+
+				if (guest_task) {
+					// Remove the property_id from the task
+					return trx('tasks')
+						.where({ task_id })
+						.update({ property_id: null }, 'task_id');
+				} else {
+					// Delete the task
+					return trx('tasks')
+						.where({ task_id })
+						.del();
+				}
+			}
+
+			// Update the deadline
+			return trx('tasks')
+				.where({ task_id })
+				.update({ deadline: newDeadline }, 'task_id');
+		});
+
+		if (updated.length !== tasks.length) {
+			trx.rollback();
+		}
+
+		return updated.length ? trx('tasks').where({ property_id }) : [];
+	});
 }
 
 async function removeTask(user_id, task_id) {
@@ -120,7 +173,7 @@ async function removeTask(user_id, task_id) {
 		return {};
 	}
 
-	//Check for dependant guest_tasks
+	// Check for dependant guest_tasks
 	const [guest_task] = await db('guest_tasks')
 		.where({ task_id })
 		.select('guest_id');
