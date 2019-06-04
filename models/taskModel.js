@@ -4,7 +4,7 @@ module.exports = {
 	getTasks,
 	addTask,
 	updateTask,
-	removeTask,
+	removeTask
 };
 
 function getTasks(user_id, property_id, role) {
@@ -90,7 +90,7 @@ async function updateTask(user_id, task_id, text, deadline) {
 			// Remove the property_id from the old task
 			const [oldTask] = trx('tasks')
 				.where({ task_id })
-				.update({ property_id: 0 }, 'task_id');
+				.update({ property_id: null }, 'task_id');
 
 			if (!oldTask) {
 				trx.rollback();
@@ -129,7 +129,7 @@ async function removeTask(user_id, task_id) {
 		// Remove the property_id from the task
 		const deleted = await db('tasks')
 			.where({ task_id })
-			.update({ property_id: 0 }, 'task_id');
+			.update({ property_id: null }, 'task_id');
 
 		return { deleted };
 	} else {
