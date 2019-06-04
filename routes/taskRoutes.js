@@ -65,7 +65,7 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
-/** Update a task*/
+/** Update a task */
 router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
 	const { task_id } = req.params;
@@ -76,7 +76,7 @@ router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 
 	try {
-		const { updated, notUnique } = await taskModel.updateTask(
+		const { updatedTasks, notUnique } = await taskModel.updateTask(
 			user_id,
 			task_id,
 			text,
@@ -87,16 +87,62 @@ router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(409).json({ notUnique });
 		}
 
-		if (!updated) {
+		if (!updatedTasks || !updatedTasks.length) {
 			return res.status(403).json({ error: 'invalid task' });
 		}
 
-		res.status(200).json({ updated });
+		res.status(200).json({ updatedTasks });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
 	}
 });
+
+/** Update a deadline */
+router.put(
+	'/deadline/:property_id',
+	checkJwt,
+	checkUserInfo,
+	async (req, res) => {
+		const { user_id, role } = req.user;
+		const { property_id } = req.params;
+		const { oldDeadline, newDeadline } = req.body;
+
+		if (role !== 'manager') {
+			return res.status(403).json({ error: 'not a manager' });
+		}
+
+		try {
+			const validProperty = await propertyModel.checkOwner(
+				user_id,
+				property_id
+			);
+
+			if (!validProperty) {
+				return res.status(403).json({ error: 'invalid property' });
+			}
+
+			if (oldDeadline == newDeadline) {
+				return res.status(403).json({ error: 'same deadline' });
+			}
+
+			const updatedTasks = await taskModel.updateDeadline(
+				property_id,
+				oldDeadline,
+				newDeadline
+			);
+
+			if (!updatedTasks.length) {
+				return res.status(403).json({ error: 'invalid old deadline' });
+			}
+
+			res.status(200).json({ updatedTasks });
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error });
+		}
+	}
+);
 
 /** Delete a task */
 router.delete('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
@@ -120,6 +166,5 @@ router.delete('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 		res.status(500).json({ error });
 	}
 });
-
 
 module.exports = router;
