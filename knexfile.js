@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const pg = require('pg');
+// const pg = require('pg');
 
 // pg.defaults.ssl = process.env.PG_SSL
 // 	? !!JSON.parse(String(process.env.PG_SSL))
