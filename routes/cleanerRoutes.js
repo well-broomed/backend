@@ -23,7 +23,7 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 		 * as well as give the options to assign one's self
 		 * to a property.
 		 */
-		cleaner_ids.push(manager_id); 
+		cleaner_ids.push({cleaner_id: manager_id}); 
 
 
 		/**
@@ -31,9 +31,9 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 		 */
 
         const cleaner_profiles = [];
-
+		console.log(cleaner_ids)
         for(let i = 0; i < cleaner_ids.length; i++){
-            userModel.getUserById(cleaner_ids[i]).then(profile => {
+            userModel.getUserById(cleaner_ids[i].cleaner_id).then(profile => {
 				cleaner_profiles.push(profile);
             /**
              * Once we have collected all of the profiles, 
@@ -69,6 +69,7 @@ router.get('/partners', checkJwt, checkUserInfo, async (req, res) => {
  * Update the default cleaner for a property
  */
 router.put('/update/:property_id', checkJwt, checkUserInfo, async (req, res) => {
+	console.log(req.body);
 	try{
 		const {property_id} = req.params;
 
