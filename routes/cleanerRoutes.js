@@ -23,17 +23,17 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 		 * as well as give the options to assign one's self
 		 * to a property.
 		 */
-		cleaner_ids.push(manager_id); 
+		cleaner_ids.push({cleaner_id: manager_id}); 
 
 
 		/**
 		 * Collect the full profile information for each cleaner in the cleaner IDs array
 		 */
 
-        const cleaner_profiles = [];
-
+		const cleaner_profiles = [];
+		
         for(let i = 0; i < cleaner_ids.length; i++){
-            userModel.getUserById(cleaner_ids[i]).then(profile => {
+            userModel.getUserById(cleaner_ids[i].cleaner_id).then(profile => {
 				cleaner_profiles.push(profile);
             /**
              * Once we have collected all of the profiles, 
