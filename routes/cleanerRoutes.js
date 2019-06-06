@@ -69,7 +69,6 @@ router.get('/partners', checkJwt, checkUserInfo, async (req, res) => {
  * Update the default cleaner for a property
  */
 router.put('/update/:property_id', checkJwt, checkUserInfo, async (req, res) => {
-	console.log(req.body);
 	try{
 		const {property_id} = req.params;
 
