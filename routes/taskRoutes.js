@@ -76,7 +76,7 @@ router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 
 	try {
-		const { updatedTasks, notUnique } = await taskModel.updateTask(
+		const { updatedTask, notUnique } = await taskModel.updateTask(
 			user_id,
 			task_id,
 			text,
@@ -87,11 +87,11 @@ router.put('/:task_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(409).json({ notUnique });
 		}
 
-		if (!updatedTasks || !updatedTasks.length) {
+		if (!updatedTask) {
 			return res.status(403).json({ error: 'invalid task' });
 		}
 
-		res.status(200).json({ updatedTasks });
+		res.status(200).json({ updatedTask });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
