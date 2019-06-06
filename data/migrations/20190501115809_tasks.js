@@ -5,7 +5,6 @@ exports.up = function(knex, Promise) {
 		table
 			.integer('property_id')
 			.unsigned()
-			.notNullable()
 			.references('properties.property_id');
 
 		table.string('text', 128).notNullable();

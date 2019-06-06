@@ -157,7 +157,7 @@ async function addGuest(guestInfo) {
 				return trx('guest_tasks').insert({ task_id, guest_id });
 			}));
 
-		if (guest_tasks.length !== tasks.length) {
+		if (tasks.length && guest_tasks.length !== tasks.length) {
 			trx.rollback();
 		}
 
