@@ -30,8 +30,8 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 		 * Collect the full profile information for each cleaner in the cleaner IDs array
 		 */
 
-        const cleaner_profiles = [];
-		console.log(cleaner_ids)
+		const cleaner_profiles = [];
+		
         for(let i = 0; i < cleaner_ids.length; i++){
             userModel.getUserById(cleaner_ids[i].cleaner_id).then(profile => {
 				cleaner_profiles.push(profile);
