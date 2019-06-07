@@ -1,6 +1,7 @@
 const db = require('../data/dbConfig');
 
-const knex = require('knex');
+const knexfile = require('../knexfile');
+const knex = require('knex')(knexfile[process.env.NODE_ENV || 'development']);
 
 const moment = require('moment');
 
