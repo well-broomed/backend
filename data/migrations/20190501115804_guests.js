@@ -15,9 +15,9 @@ exports.up = function(knex, Promise) {
 
 		table.string('guest_name', 128).notNullable();
 
-		table.datetime('checkin', { useTz: false, precision: 0 }).notNullable();
+		table.datetime('checkin', { useTz: true, precision: 0 }).notNullable();
 
-		table.datetime('checkout', { useTz: false, precision: 0 }).notNullable();
+		table.datetime('checkout', { useTz: true, precision: 0 }).notNullable();
 
 		table.string('email', 128);
 	});

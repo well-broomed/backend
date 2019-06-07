@@ -40,5 +40,5 @@ exports.up = function(knex, Promise) {
 };
 
 exports.down = function(knex, Promise) {
-	return knex.schema.dropTableIfExists('users');
+	return knex.raw('DROP TABLE if exists users cascade');
 };

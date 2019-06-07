@@ -84,7 +84,6 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		// make an exception is the manager is self-cleaning
 		if(Number(cleaner_id) !== Number(user_id)){
 			if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
-				console.log('bad assistant')
 				return res.status(404).json({ error: 'invalid assistant' });
 			}
 		}
