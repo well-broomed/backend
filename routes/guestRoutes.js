@@ -46,6 +46,8 @@ router.get('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 			});
 		}
 
+		console.log(guest, "GET GUEST");
+
 		res.status(200).json({ guest });
 	} catch (error) {
 		console.error(error);
@@ -131,6 +133,8 @@ router.put('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 		email,
 		cleaner_id
 	};
+
+	console.log('GUEST INFO', guestInfo);
 
 	// Check role
 	if (role !== 'manager') {
