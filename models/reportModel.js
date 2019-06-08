@@ -40,7 +40,7 @@ async function getReports(manager_id, timeNow) {
 		.leftJoin('users as u', 'g.cleaner_id', 'u.user_id')
 		.leftJoin('guest_tasks as gt', 'g.guest_id', 'gt.guest_id')
 		.join('tasks as t', 'gt.task_id', 't.task_id')
-		.where('t.deadline', '>', -1)
+		.where('t.deadline', '=', 0)
 		.select(
 			knex.raw(
 				`${selectFields}, floor(avg(case when gt.completed then 1 else 0 end) * 100) as completion`
