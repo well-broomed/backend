@@ -6,7 +6,8 @@ exports.up = function(knex, Promise) {
 			.integer('property_id')
 			.unsigned()
 			.notNullable()
-			.references('properties.property_id');
+			.references('properties.property_id')
+			.onDelete('CASCADE');
 
 		table
 			.integer('cleaner_id')
