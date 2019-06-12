@@ -29,7 +29,38 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 			timeNow
 		);
 
-		res.status(200).json({ recent, current, upcoming });
+		const reports = [];
+
+		current.forEach(current => reports.push({ current }));
+
+		recent.forEach(recent => {
+			const i = reports.findIndex(
+				({ current }) =>
+					recent.property_id === (current ? current.property_id : -1)
+			);
+
+			if (i > -1) {
+				reports[i].recent = recent;
+			} else {
+				reports.push({ recent });
+			}
+		});
+
+		upcoming.forEach(upcoming => {
+			const i = reports.findIndex(
+				({ current, recent }) =>
+					upcoming.property_id ===
+					(current ? current.property_id : recent ? recent.property_id : -1)
+			);
+
+			if (i > -1) {
+				reports[i].upcoming = upcoming;
+			} else {
+				reports.push({ upcoming });
+			}
+		});
+
+		res.status(200).json({ reports });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
