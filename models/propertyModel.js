@@ -10,6 +10,7 @@ const checkForDuplicates = require('../helpers/checkForDuplicates');
 
 module.exports = {
 	getProperties,
+	getDefaultProperties,
 	getProperty,
 	addProperty,
 	updateProperty,
@@ -20,7 +21,7 @@ module.exports = {
 	getPartners,
 
 	checkCleaner,
-	updateAvailability
+	updateAvailability,
 };
 
 async function getProperties(user_id, role) {
@@ -28,7 +29,7 @@ async function getProperties(user_id, role) {
 		'p.property_id, p.property_name, p.cleaner_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
 
 	const assistantPropertyFields =
-		'p.property_id, p.property_name, p.manager_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
+		'p.property_id, p.property_name, p.manager_id, p.cleaner_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
 
 	const properties =
 		role === 'manager'
@@ -45,18 +46,21 @@ async function getProperties(user_id, role) {
 			: await db('properties as p')
 					.join('partners as prt', 'p.manager_id', 'prt.manager_id')
 					.where({ 'prt.cleaner_id': user_id })
+					.join('users as u', 'p.manager_id', 'u.user_id')
 					.leftJoin(
 						'available_cleaners as ac',
 						'p.property_id',
 						'ac.property_id'
 					)
+					.where({ 'ac.cleaner_id': user_id })
+					.orWhere({ 'ac.cleaner_id': null })
 					.leftJoin('tasks as t', 'p.property_id', 't.property_id')
 					.select(
 						knex.raw(
-							`${assistantPropertyFields}, count(t.property_id) as task_count`
+							`${assistantPropertyFields}, u.user_name as manager_name, ac.cleaner_id as available, count(t.property_id) as task_count`
 						)
 					)
-					.groupByRaw(assistantPropertyFields)
+					.groupByRaw(`${assistantPropertyFields}, manager_name, available`)
 					.orderBy('property_name'); // Could be improved by using natural-sort
 
 	if (role !== 'manager') return properties;
@@ -64,13 +68,29 @@ async function getProperties(user_id, role) {
 	return await Promise.map(properties, async property => {
 		const available_cleaners = await db('available_cleaners as ac')
 			.where({
-				property_id: property.property_id
+				property_id: property.property_id,
 			})
 			.join('users as u', 'ac.cleaner_id', 'u.user_id')
 			.select('ac.cleaner_id', 'u.user_name as cleaner_name');
 
 		return { ...property, available_cleaners };
 	});
+}
+
+async function getDefaultProperties(user_id, role) {
+	const defaultProperties =
+		role === 'manager'
+			? await db('properties as p')
+					.where({ manager_id: user_id })
+					.select('p.property_id', 'p.property_name', 'p.cleaner_id')
+					.orderBy('property_name') // Could be improved by using natural-sort
+			: await db('properties as p')
+					.join('partners as prt', 'p.manager_id', 'prt.manager_id')
+					.where({ 'prt.cleaner_id': user_id })
+					.select('p.property_id', 'p.property_name', 'p.cleaner_id')
+					.orderBy('property_name'); // Could be improved by using natural-sort
+
+	return defaultProperties;
 }
 
 async function getProperty(user_id, property_id, role) {
@@ -94,7 +114,7 @@ async function getProperty(user_id, property_id, role) {
 
 	const available_cleaners = await db('available_cleaners as ac')
 		.where({
-			property_id: property.property_id
+			property_id: property.property_id,
 		})
 		.join('users as u', 'ac.cleaner_id', 'u.user_id')
 		.select('ac.cleaner_id', 'u.user_name as cleaner_name');
@@ -204,8 +224,6 @@ function checkCleaner(cleaner_id, property_id) {
 
 // Doesn't check for existing entries; can possibly return ugly errors
 async function updateAvailability(cleaner_id, property_id, available) {
-	console.log('stuff:', { cleaner_id, property_id, available });
-
 	return available
 		? (await db('available_cleaners').insert(
 				{ cleaner_id, property_id },
