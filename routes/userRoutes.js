@@ -29,7 +29,7 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	try {
 		// Find user else create a new one
 		const auth_provider = req.user.sub.split('|');
-		
+
 		const user =
 			(await userModel.getUserByEmail(email)) ||
 			(await userModel.addUser(
@@ -67,8 +67,8 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	}
 });
 
-/** Get assistants by manager_id */
-router.get('/assistants', checkJwt, checkUserInfo, async (req, res) => {
+/** Get partners by manager_id */
+router.get('/partners', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
 
 	if (role !== 'manager') {
@@ -76,15 +76,44 @@ router.get('/assistants', checkJwt, checkUserInfo, async (req, res) => {
 	}
 
 	try {
-		const assistants = await userModel.getAssistants(user_id);
+		const partners = await userModel.getPartners(user_id);
 
-		res.status(200).json({ assistants });
+		res.status(200).json({ partners });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
 	}
 });
 
+/** Get partner by user_id */
+router.get(
+	'/partners/:cleaner_id',
+	checkJwt,
+	checkUserInfo,
+	async (req, res) => {
+		const { user_id, role } = req.user;
+		const { cleaner_id } = req.params;
+
+		if (role !== 'manager') {
+			return res.status(403).json({ error: 'not a manager' });
+		}
+
+		try {
+			const partner = await userModel.getPartner(user_id, cleaner_id);
+
+			if (!partner) {
+				return res.status(404).json({ error: 'invalid partner id' });
+			}
+
+			res.status(200).json({ partner });
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error });
+		}
+	}
+);
+
+/** Update user */
 router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 	const user_id = req.params.user_id;
 	const changes = req.body;
@@ -99,11 +128,11 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 
 	// parse which fields to send in the update
 	// we have to do this since auth0 uses 'username' and we use 'user_name'
-	if(changes.user_name){
+	if (changes.user_name) {
 		updateObj.username = changes.user_name;
-	} else if (changes.password){
+	} else if (changes.password) {
 		updateObj.password = changes.password;
-	} else if (changes.email){
+	} else if (changes.email) {
 		updateObj.email = changes.email;
 	}
 
@@ -114,31 +143,34 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 		},
 		body: updateObj,
 		json: true,
-	}
+	};
 
-	rp.patch(auth0user).then(status => {
-		
-		// parse the returned updated auth0 user object for our internal api
-		const userUpdate = {
-			user_name: status.username,
-			email: status.email,
-			img_url: status.picture,
-		}
+	rp.patch(auth0user)
+		.then(status => {
+			// parse the returned updated auth0 user object for our internal api
+			const userUpdate = {
+				user_name: status.username,
+				email: status.email,
+				img_url: status.picture,
+			};
 
-		userModel.updateUser(user_id, userUpdate).then(status => {
+			userModel
+				.updateUser(user_id, userUpdate)
+				.then(status => {
+					// refresh the userinfo token
+					const userInfo = generateToken(status, req.user.exp);
 
-			// refresh the userinfo token
-			const userInfo = generateToken(status, req.user.exp);
-		
-			return res.status(200).json({user: status[0], userInfo: userInfo});
-		}).catch(err => {
-			console.log(err);
-			return res.status(500).json({error: `Internal server error.`})
+					return res.status(200).json({ user: status[0], userInfo: userInfo });
+				})
+				.catch(err => {
+					console.log(err);
+					return res.status(500).json({ error: `Internal server error.` });
+				});
 		})
-	}).catch(err => {
-		console.log(err);
-		return res.status(500).json({error: `Internal server error.`})
-	})
-})
+		.catch(err => {
+			console.log(err);
+			return res.status(500).json({ error: `Internal server error.` });
+		});
+});
 
 module.exports = router;
