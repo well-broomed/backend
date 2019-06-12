@@ -18,11 +18,24 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	try {
 		const properties = await propertyModel.getProperties(user_id, role);
 
-		if (!properties[0]) {
-			return res.status(200).json({ message: 'no properties found' });
-		}
-
 		res.status(200).json({ properties });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
+
+/** Get properties with less info for 'default properties' dropdowns */
+router.get('/defaults', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+
+	try {
+		const defaultProperties = await propertyModel.getDefaultProperties(
+			user_id,
+			role
+		);
+
+		res.status(200).json({ defaultProperties });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
@@ -61,7 +74,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		img_url,
 		cleaner_id,
 		guest_guide,
-		assistant_guide
+		assistant_guide,
 	} = req.body;
 
 	const propertyInfo = {
@@ -71,7 +84,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		img_url,
 		cleaner_id,
 		guest_guide,
-		assistant_guide
+		assistant_guide,
 	};
 
 	if (role !== 'manager') {
@@ -108,7 +121,7 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		img_url,
 		cleaner_id,
 		guest_guide,
-		assistant_guide
+		assistant_guide,
 	} = req.body;
 
 	const propertyInfo = {
@@ -117,7 +130,7 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		img_url,
 		cleaner_id,
 		guest_guide,
-		assistant_guide
+		assistant_guide,
 	};
 
 	if (role !== 'manager') {
@@ -150,12 +163,9 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
-
 /**
  * Delete a property
  */
-
-
 
 /** Update availability */
 router.put(
@@ -206,6 +216,5 @@ router.put(
 		}
 	}
 );
-
 
 module.exports = router;

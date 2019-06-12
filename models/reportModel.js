@@ -93,3 +93,5 @@ function getPastReports(manager_id, timeNow) {
 		.groupBy(knex.raw(`${groupdByFields}`))
 		.orderBy('g.checkout', 'desc');
 }
+
+function getPartnerReports(manager_id, timeNow) {}
