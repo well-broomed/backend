@@ -82,11 +82,24 @@ async function getDefaultProperties(user_id, role) {
 		role === 'manager'
 			? await db('properties as p')
 					.where({ manager_id: user_id })
-					.select('p.property_id', 'p.property_name', 'p.cleaner_id')
+					.join('users as u', 'p.cleaner_id', 'u.user_id')
+					.select(
+						'p.property_id',
+						'p.property_name',
+						'p.cleaner_id',
+						'u.user_name as cleaner_name'
+					)
 					.orderBy('property_name') // Could be improved by using natural-sort
 			: await db('properties as p')
 					.join('partners as prt', 'p.manager_id', 'prt.manager_id')
 					.where({ 'prt.cleaner_id': user_id })
+					.join('users as u', 'p.cleaner_id', 'u.user_id')
+					.select(
+						'p.property_id',
+						'p.property_name',
+						'p.cleaner_id',
+						'u.user_name as cleaner_name'
+					)
 					.select('p.property_id', 'p.property_name', 'p.cleaner_id')
 					.orderBy('property_name'); // Could be improved by using natural-sort
 
