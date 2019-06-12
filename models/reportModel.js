@@ -86,15 +86,6 @@ function getPastReports(manager_id, timeNow) {
 		.leftJoin('guest_tasks as gt', 'g.guest_id', 'gt.guest_id')
 		.join('tasks as t', 'gt.task_id', 't.task_id')
 		.select(
-			'g.property_id',
-			'p.property_name',
-			'g.guest_id',
-			'g.guest_name',
-			'g.cleaner_id',
-			'u.user_name as cleaner_name',
-			'g.checkout'
-		)
-		.select(
 			knex.raw(
 				`${selectFields}, floor(avg(case when gt.completed then 1 else 0 end) * 100) as completion`
 			)
@@ -102,3 +93,5 @@ function getPastReports(manager_id, timeNow) {
 		.groupBy(knex.raw(`${groupdByFields}`))
 		.orderBy('g.checkout', 'desc');
 }
+
+function getPartnerReports(manager_id, timeNow) {}
