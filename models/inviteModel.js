@@ -47,10 +47,10 @@ async function inviteUser(manager_id, email) {
 	//MailGun
 	const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
 	
-	const manager = await db('users').where({user_id: manager_id}).select('user_name')
+	const manager = await db('users').where({user_id: manager_id}).select('user_name').first();
 	//Content of Email Being Sent
 	const data = {
-		from: `${manager}@well-broomed.com`,
+		from: `${manager.user_name} <${manager.user_name}@well-broomed.com>`,
 		to: email,
 		subject: 'Well-Broomed Invitation',
 		html:
@@ -59,7 +59,6 @@ async function inviteUser(manager_id, email) {
 			`${frontendUrl}/invite/` +
 			inviteCode
 	};
-
 	mailgun.messages().send(data, function(err, body) {
 		if (err) {
 			console.log('Mailgun got an error: ', err);
