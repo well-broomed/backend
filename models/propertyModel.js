@@ -20,7 +20,8 @@ module.exports = {
 	getPartners,
 
 	checkCleaner,
-	updateAvailability
+	updateAvailability,
+	deleteProperty,
 };
 
 async function getProperties(user_id, role) {
@@ -214,4 +215,8 @@ async function updateAvailability(cleaner_id, property_id, available) {
 		: await db('available_cleaners')
 				.where({ cleaner_id, property_id })
 				.del();
+}
+
+function deleteProperty(property_id){
+	return db('properties').where({property_id}).del();
 }

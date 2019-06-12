@@ -155,7 +155,18 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
  * Delete a property
  */
 
+router.delete('/:property_id', checkJwt, checkUserInfo, (req, res) => {
+	const property_id = req.params.property_id;
 
+	propertyModel.deleteProperty(property_id).then(status => {
+		console.log(status);
+
+		return res.status(200).json({message: `Property successfully deleted.`})
+	}).catch(err => {
+		console.log(err);
+		return res.status(500).json({error: `Internal server error.`})
+	})
+})
 
 /** Update availability */
 router.put(
