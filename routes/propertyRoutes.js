@@ -124,8 +124,6 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		return res.status(403).json({ error: 'not a manager' });
 	}
 
-	console.log('UPDATE PROPERTY', propertyInfo);
-
 	try {
 		if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
 			return res.status(404).json({ error: 'invalid assistant' });
