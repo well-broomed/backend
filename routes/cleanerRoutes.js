@@ -85,6 +85,9 @@ router.put('/update/:property_id', checkJwt, checkUserInfo, async (req, res) => 
 
 		const updated = await propertyModel.changeCleaner(manager_id, property_id, cleaner_id);
 
+		if(!updated)
+		return res.status(403).json({error: 'Property could not be updated with new cleaner'});
+
 		const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
 		
 		const cleaner = await userModel.getUserById(cleaner_id);
