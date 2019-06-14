@@ -159,8 +159,6 @@ router.delete('/:property_id', checkJwt, checkUserInfo, (req, res) => {
 	const property_id = req.params.property_id;
 
 	propertyModel.deleteProperty(property_id).then(status => {
-		console.log(status);
-
 		return res.status(200).json({message: `Property successfully deleted.`})
 	}).catch(err => {
 		console.log(err);
