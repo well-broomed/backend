@@ -10,6 +10,11 @@ const checkUserInfo = require('../middleware/checkUserInfo');
 const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
 
+// Mailgun 
+const mailgunKey = process.env.MAILGUN_KEY;
+const mailgunDomain = process.env.MAILGUN_URL;
+const Mailgun = require('mailgun-js');
+
 // Routes
 /** Get properties by user_id */
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
@@ -18,11 +23,66 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	try {
 		const properties = await propertyModel.getProperties(user_id, role);
 
-		if (!properties[0]) {
-			return res.status(200).json({ message: 'no properties found' });
-		}
-
 		res.status(200).json({ properties });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
+
+/** Get properties with less info for 'default properties' dropdowns */
+router.get('/defaults', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+
+	try {
+		const defaultProperties = await propertyModel.getDefaultProperties(
+			user_id,
+			role
+		);
+
+		res.status(200).json({ defaultProperties });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
+
+/** Get Properties and cleaners (for adding/adding guests) */
+router.get('/cleaners', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
+
+	try {
+		const { cleaners, unreducedPC } = await propertyModel.getPropertyCleaners(
+			user_id
+		);
+
+		let p = null;
+		let i = -1;
+
+		const propertyCleaners = unreducedPC.reduce(
+			(arr, { property_id, property_name, cleaner_id, cleaner_name }) => {
+				if (property_id === p) {
+					arr[i].cleaners.push({ cleaner_id, cleaner_name });
+				} else {
+					p = property_id;
+					arr.push({
+						property_id,
+						property_name,
+						cleaners: [{ cleaner_id, cleaner_name }],
+					});
+					i++;
+				}
+
+				return arr;
+			},
+			[]
+		);
+
+		res.status(200).json({ cleaners, propertyCleaners });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
@@ -61,7 +121,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		img_url,
 		cleaner_id,
 		guest_guide,
-		assistant_guide
+		assistant_guide,
 	} = req.body;
 
 	const propertyInfo = {
@@ -71,7 +131,7 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		img_url,
 		cleaner_id,
 		guest_guide,
-		assistant_guide
+		assistant_guide,
 	};
 
 	if (role !== 'manager') {
@@ -108,7 +168,7 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		img_url,
 		cleaner_id,
 		guest_guide,
-		assistant_guide
+		assistant_guide,
 	} = req.body;
 
 	// Programmatically assign updated values based on what has been submitted
@@ -149,7 +209,6 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		res.status(500).json({ error });
 	}
 });
-
 
 /**
  * Delete a property
@@ -208,6 +267,46 @@ router.put(
 				return res.status(500).json({ error: 'something went wrong' });
 			}
 
+			const mailgun = new Mailgun({
+				apiKey: mailgunKey,
+				domain: mailgunDomain
+			});
+
+			const cleaner = await userModel.getUserById(cleaner_id);
+			const newProperty = await propertyModel.getProperty(
+				user_id,
+				property_id,
+				role
+			);
+
+			console.log(newProperty, available);
+
+			const data = {
+				from: `Well-Broomed <Broom@well-broomed.com>`,
+				to: `${cleaner.email}`,
+				subject: 'Reassignment',
+				html: available
+					? `Hello ${cleaner.user_name}, you have been made available for ${
+							newProperty.property_name
+					  } located at ${
+							newProperty.address
+					  }. Please contact your manager for further details or questions.`
+					: `Hello ${cleaner.user_name}, you have been made unavailable for ${
+							newProperty.property_name
+					  } located at ${
+							newProperty.address
+					  }. Please contact your manager for further details or questions.`
+			};
+
+			mailgun.messages().send(data, function(err, body) {
+				if (err) {
+					console.log('Mailgun got an error: ', err);
+					return { mailgunErr: err };
+				} else console.log('body:', body);
+			});
+
+			console.log(updated);
+
 			res.status(200).json({ updated });
 		} catch (error) {
 			console.error(error);
@@ -215,6 +314,5 @@ router.put(
 		}
 	}
 );
-
 
 module.exports = router;

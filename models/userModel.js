@@ -46,12 +46,12 @@ async function getPartners(manager_id) {
 		);
 
 	return await Promise.map(partners, async partner => {
-		const defaultProperties = await db('properties')
+		const defaultProperties = await db('properties as p')
 			.where({
 				cleaner_id: partner.cleaner_id,
 			})
-			.count('property_id as defaultProperties')
-			.first();
+			.select('p.property_id', 'p.property_name')
+			.orderBy('p.property_name');
 
 		const availableProperties = await db('available_cleaners as ac')
 			.where({ 'ac.cleaner_id': partner.cleaner_id })
@@ -72,7 +72,7 @@ async function getPartners(manager_id) {
 
 		return {
 			...partner,
-			defaultProperties: defaultProperties.defaultProperties || 0,
+			defaultProperties,
 			availableProperties,
 			completion: completion.completion || null,
 		};
@@ -97,12 +97,12 @@ async function getPartner(manager_id, cleaner_id) {
 
 	if (!partner) return null;
 
-	const defaultProperties = await db('properties')
+	const defaultProperties = await db('properties as p')
 		.where({
 			cleaner_id,
 		})
-		.count('property_id as defaultProperties')
-		.first();
+		.select('p.property_id', 'p.property_name')
+		.orderBy('p.property_name');
 
 	const availableProperties = await db('available_cleaners as ac')
 		.where({ 'ac.cleaner_id': cleaner_id })
@@ -137,7 +137,7 @@ async function getPartner(manager_id, cleaner_id) {
 
 	return {
 		...partner,
-		defaultProperties: defaultProperties.defaultProperties || 0,
+		defaultProperties,
 		availableProperties,
 		completion: completion.completion || null,
 		guests,
