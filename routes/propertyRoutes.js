@@ -47,6 +47,48 @@ router.get('/defaults', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
+/** Get Properties and cleaners (for adding/adding guests) */
+router.get('/cleaners', checkJwt, checkUserInfo, async (req, res) => {
+	const { user_id, role } = req.user;
+
+	if (role !== 'manager') {
+		return res.status(403).json({ error: 'not a manager' });
+	}
+
+	try {
+		const { cleaners, unreducedPC } = await propertyModel.getPropertyCleaners(
+			user_id
+		);
+
+		let p = null;
+		let i = -1;
+
+		const propertyCleaners = unreducedPC.reduce(
+			(arr, { property_id, property_name, cleaner_id, cleaner_name }) => {
+				if (property_id === p) {
+					arr[i].cleaners.push({ cleaner_id, cleaner_name });
+				} else {
+					p = property_id;
+					arr.push({
+						property_id,
+						property_name,
+						cleaners: [{ cleaner_id, cleaner_name }],
+					});
+					i++;
+				}
+
+				return arr;
+			},
+			[]
+		);
+
+		res.status(200).json({ cleaners, propertyCleaners });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error });
+	}
+});
+
 /** Get a property by property_id */
 router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
