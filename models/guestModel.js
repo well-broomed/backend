@@ -17,14 +17,14 @@ module.exports = {
 	checkManager,
 	checkCleaner,
 	reassignCleaner,
-	acceptReassignment
+	acceptReassignment,
 };
 
 function getGuests(user_id, role) {
 	return role === 'manager'
 		? db('guests as g')
-				.where({ 'p.manager_id': user_id })
 				.join('properties as p', 'g.property_id', 'p.property_id')
+				.where({ 'p.manager_id': user_id })
 				.leftJoin('users as u', 'g.cleaner_id', 'u.user_id')
 				.leftJoin('guest_tasks as gt', 'g.guest_id', 'gt.guest_id')
 				.select(
@@ -40,11 +40,11 @@ function getGuests(user_id, role) {
 				.orderBy('g.checkin')
 		: db('guests as g')
 				.join('properties as p', 'g.property_id', 'p.property_id')
-				.join('partners', 'p.manager_id', 'partners.manager_id')
+				.join('partners as prt', 'p.manager_id', 'prt.manager_id')
 				.where({
-					'partners.cleaner_id': user_id
+					'prt.cleaner_id': user_id,
 				})
-				.leftJoin('users as u', 'g.manager_id', 'u.user_id')
+				.join('users as u', 'p.manager_id', 'u.user_id')
 				.leftJoin('guest_tasks as gt', 'g.guest_id', 'gt.guest_id')
 				.select(
 					'g.*',
@@ -100,7 +100,7 @@ async function getGuest(user_id, guest_id, role) {
 
 	const availableCleaners = await db('available_cleaners as ac')
 		.where({
-			property_id: guest.property_id
+			property_id: guest.property_id,
 		})
 		.andWhereNot({ cleaner_id: guest.cleaner_id })
 		.join('users as u', 'ac.cleaner_id', 'u.user_id')
@@ -110,7 +110,7 @@ async function getGuest(user_id, guest_id, role) {
 	const otherCleaners = await db('partners as p')
 		.leftJoin('available_cleaners as ac', 'p.cleaner_id', 'ac.cleaner_id')
 		.where({
-			manager_id: guest.manager_id || user_id
+			manager_id: guest.manager_id || user_id,
 		})
 		.andWhere({ ['ac.property_id']: null })
 		.join('users as u', 'p.cleaner_id', 'u.user_id')
@@ -243,7 +243,7 @@ async function reassignCleaner(guest_id, cleaner_id, role) {
 			.where({ guest_id })
 			.update(
 				{
-					cleaner_id
+					cleaner_id,
 				},
 				'cleaner_id'
 			);
@@ -273,7 +273,7 @@ async function reassignCleaner(guest_id, cleaner_id, role) {
 		{
 			guest_id,
 			cleaner_id,
-			timestamp: moment.utc(Date.now())
+			timestamp: moment.utc(Date.now()),
 		},
 		'cleaner_id'
 	);

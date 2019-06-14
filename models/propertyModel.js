@@ -11,6 +11,7 @@ const checkForDuplicates = require('../helpers/checkForDuplicates');
 module.exports = {
 	getProperties,
 	getDefaultProperties,
+	getPropertyCleaners,
 	getProperty,
 	addProperty,
 	updateProperty,
@@ -104,6 +105,34 @@ async function getDefaultProperties(user_id, role) {
 					.orderBy('property_name'); // Could be improved by using natural-sort
 
 	return defaultProperties;
+}
+
+async function getPropertyCleaners(manager_id) {
+	const cleaners = await db('partners as prt')
+		.where({ manager_id })
+		.join('users as u', 'prt.cleaner_id', 'u.user_id')
+		.select('prt.cleaner_id', 'u.user_name as cleaner_name')
+		.orderBy('cleaner_name');
+
+	const unreducedPC = await db('properties as p')
+		.where({ manager_id })
+		.join('available_cleaners as ac', function() {
+			this.on('p.property_id', '=', 'ac.property_id').on(
+				'p.cleaner_id',
+				'!=',
+				'ac.cleaner_id'
+			);
+		})
+		.join('users as u', 'ac.cleaner_id', 'u.user_id')
+		.select(
+			'p.property_id',
+			'p.property_name',
+			'ac.cleaner_id',
+			'u.user_name as cleaner_name'
+		)
+		.orderBy(['p.property_id', 'cleaner_name']);
+
+	return { cleaners, unreducedPC };
 }
 
 async function getProperty(user_id, property_id, role) {
