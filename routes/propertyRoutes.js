@@ -171,14 +171,14 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		assistant_guide,
 	} = req.body;
 
-	const propertyInfo = {
-		property_name,
-		address,
-		img_url,
-		cleaner_id,
-		guest_guide,
-		assistant_guide,
-	};
+	// Programmatically assign updated values based on what has been submitted
+	const propertyInfo = {};
+
+	for(var key in req.body){
+		if(key !== undefined){
+			propertyInfo[key] = req.body[key]
+		}
+	}
 
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
@@ -213,6 +213,17 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 /**
  * Delete a property
  */
+
+router.delete('/:property_id', checkJwt, checkUserInfo, (req, res) => {
+	const property_id = req.params.property_id;
+
+	propertyModel.deleteProperty(property_id).then(status => {
+		return res.status(200).json({message: `Property successfully deleted.`})
+	}).catch(err => {
+		console.log(err);
+		return res.status(500).json({error: `Internal server error.`})
+	})
+})
 
 /** Update availability */
 router.put(
