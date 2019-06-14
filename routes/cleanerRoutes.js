@@ -76,10 +76,14 @@ router.get('/partners', checkJwt, checkUserInfo, async (req, res) => {
 router.put('/update/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	try{
 		const {property_id} = req.params;
-
+		const manager_id = req.user.user_id;
 		const {cleaner_id} = req.body;
 
-		const updated = await propertyModel.changeCleaner(property_id, cleaner_id);
+		if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) {
+			return res.status(404).json({ error: 'invalid assistant' });
+		}
+
+		const updated = await propertyModel.changeCleaner(manager_id, property_id, cleaner_id);
 
 		const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
 		
