@@ -26,7 +26,7 @@ module.exports = {
 
 async function getProperties(user_id, role) {
 	const managerPropertyFields =
-		'p.property_id, p.property_name, p.cleaner_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
+		'p.property_id, p.manager_id, p.property_name, p.cleaner_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';
 
 	const assistantPropertyFields =
 		'p.property_id, p.property_name, p.manager_id, p.address, p.img_url, p.guest_guide, p.assistant_guide';

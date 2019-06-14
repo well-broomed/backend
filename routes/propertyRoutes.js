@@ -111,18 +111,20 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		assistant_guide
 	} = req.body;
 
-	const propertyInfo = {
-		property_name,
-		address,
-		img_url,
-		cleaner_id,
-		guest_guide,
-		assistant_guide
-	};
+	// Programmatically assign updated values based on what has been submitted
+	const propertyInfo = {};
+
+	for(var key in req.body){
+		if(key !== undefined){
+			propertyInfo[key] = req.body[key]
+		}
+	}
 
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
 	}
+
+	console.log('UPDATE PROPERTY', propertyInfo);
 
 	try {
 		if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
