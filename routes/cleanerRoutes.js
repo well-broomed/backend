@@ -10,6 +10,11 @@ const checkUserInfo = require('../middleware/checkUserInfo');
 const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
 
+// Mailgun 
+const mailgunKey = process.env.MAILGUN_KEY;
+const mailgunDomain = process.env.MAILGUN_URL;
+const Mailgun = require('mailgun-js');
+
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	try{
 		const manager_id = req.user.user_id;
@@ -75,6 +80,28 @@ router.put('/update/:property_id', checkJwt, checkUserInfo, async (req, res) => 
 		const {cleaner_id} = req.body;
 
 		const updated = await propertyModel.changeCleaner(property_id, cleaner_id);
+
+		const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
+		
+		const cleaner = await userModel.getUserById(cleaner_id);
+
+		console.log(cleaner, updated);
+		const newProperty = updated.updated.property_name;
+		const newAddress = updated.updated.address
+
+		const data = {
+			from: `Well-Broomed <Broom@well-broomed.com>`,
+			to: `${user.email}`,
+			subject: 'Reassignment',
+			html:
+				`Hello ${cleaner.user_name}, you have just been reassigned to be the default cleaner for ${newProperty} located at ${newAddress}. Please contact your manager for further details or questions.`
+		};
+		mailgun.messages().send(data, function(err, body) {
+			if (err) {
+				console.log('Mailgun got an error: ', err);
+				return { mailgunErr: err };
+			} else console.log('body:', body);
+		});
 
 		console.log('change cleaner', updated);
 
