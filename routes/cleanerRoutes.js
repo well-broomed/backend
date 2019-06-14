@@ -85,25 +85,25 @@ router.put('/update/:property_id', checkJwt, checkUserInfo, async (req, res) => 
 		
 		const cleaner = await userModel.getUserById(cleaner_id);
 
-		console.log(cleaner, updated);
-		const newProperty = updated.updated.property_name;
-		const newAddress = updated.updated.address
+		const newProperty = updated.property_name;
+		const newAddress = updated.address
+		const assigned = updated.cleaner_id
 
 		const data = {
 			from: `Well-Broomed <Broom@well-broomed.com>`,
-			to: `${user.email}`,
+			to: `${cleaner.email}`,
 			subject: 'Reassignment',
-			html:
+			html: assigned ?
 				`Hello ${cleaner.user_name}, you have just been reassigned to be the default cleaner for ${newProperty} located at ${newAddress}. Please contact your manager for further details or questions.`
+				: `Hello ${cleaner.user_name}, you have just been removed as the default cleaner for ${newProperty} located at ${newAddress}. Please contact your manager for further details or questions.`
 		};
+
 		mailgun.messages().send(data, function(err, body) {
 			if (err) {
 				console.log('Mailgun got an error: ', err);
 				return { mailgunErr: err };
 			} else console.log('body:', body);
 		});
-
-		console.log('change cleaner', updated);
 
 		return res.status(200).json({updated});
 	}catch(error){
