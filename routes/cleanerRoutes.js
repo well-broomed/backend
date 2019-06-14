@@ -10,6 +10,11 @@ const checkUserInfo = require('../middleware/checkUserInfo');
 const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
 
+// Mailgun 
+const mailgunKey = process.env.MAILGUN_KEY;
+const mailgunDomain = process.env.MAILGUN_URL;
+const Mailgun = require('mailgun-js');
+
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	try{
 		const manager_id = req.user.user_id;
@@ -71,12 +76,41 @@ router.get('/partners', checkJwt, checkUserInfo, async (req, res) => {
 router.put('/update/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	try{
 		const {property_id} = req.params;
-
+		const manager_id = req.user.user_id;
 		const {cleaner_id} = req.body;
 
-		const updated = await propertyModel.changeCleaner(property_id, cleaner_id);
+		if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) {
+			return res.status(404).json({ error: 'invalid assistant' });
+		}
 
-		console.log('change cleaner', updated);
+		const updated = await propertyModel.changeCleaner(manager_id, property_id, cleaner_id);
+
+		if(!updated)
+		return res.status(403).json({error: 'Property could not be updated with new cleaner'});
+
+		const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
+		
+		const cleaner = await userModel.getUserById(cleaner_id);
+
+		const newProperty = updated.property_name;
+		const newAddress = updated.address
+		const assigned = updated.cleaner_id
+
+		const data = {
+			from: `Well-Broomed <Broom@well-broomed.com>`,
+			to: `${cleaner.email}`,
+			subject: 'Reassignment',
+			html: assigned ?
+				`Hello ${cleaner.user_name}, you have just been reassigned to be the default cleaner for ${newProperty} located at ${newAddress}. Please contact your manager for further details or questions.`
+				: `Hello ${cleaner.user_name}, you have just been removed as the default cleaner for ${newProperty} located at ${newAddress}. Please contact your manager for further details or questions.`
+		};
+
+		mailgun.messages().send(data, function(err, body) {
+			if (err) {
+				console.log('Mailgun got an error: ', err);
+				return { mailgunErr: err };
+			} else console.log('body:', body);
+		});
 
 		return res.status(200).json({updated});
 	}catch(error){

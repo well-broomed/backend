@@ -10,6 +10,11 @@ const checkUserInfo = require('../middleware/checkUserInfo');
 const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
 
+// Mailgun 
+const mailgunKey = process.env.MAILGUN_KEY;
+const mailgunDomain = process.env.MAILGUN_URL;
+const Mailgun = require('mailgun-js');
+
 // Routes
 /** Get properties by user_id */
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
@@ -250,6 +255,46 @@ router.put(
 			if (!updated) {
 				return res.status(500).json({ error: 'something went wrong' });
 			}
+
+			const mailgun = new Mailgun({
+				apiKey: mailgunKey,
+				domain: mailgunDomain
+			});
+
+			const cleaner = await userModel.getUserById(cleaner_id);
+			const newProperty = await propertyModel.getProperty(
+				user_id,
+				property_id,
+				role
+			);
+
+			console.log(newProperty, available);
+
+			const data = {
+				from: `Well-Broomed <Broom@well-broomed.com>`,
+				to: `${cleaner.email}`,
+				subject: 'Reassignment',
+				html: available
+					? `Hello ${cleaner.user_name}, you have been made available for ${
+							newProperty.property_name
+					  } located at ${
+							newProperty.address
+					  }. Please contact your manager for further details or questions.`
+					: `Hello ${cleaner.user_name}, you have been made unavailable for ${
+							newProperty.property_name
+					  } located at ${
+							newProperty.address
+					  }. Please contact your manager for further details or questions.`
+			};
+
+			mailgun.messages().send(data, function(err, body) {
+				if (err) {
+					console.log('Mailgun got an error: ', err);
+					return { mailgunErr: err };
+				} else console.log('body:', body);
+			});
+
+			console.log(updated);
 
 			res.status(200).json({ updated });
 		} catch (error) {

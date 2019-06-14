@@ -247,13 +247,18 @@ async function getPartners(manager_id) {
 	return partners;
 }
 
-async function changeCleaner(property_id, cleaner_id) {
+async function changeCleaner(manager_id, property_id, cleaner_id) {
+	const [alreadyCleaner] = await db('properties').where({
+		cleaner_id,
+		property_id
+	});
+
 	const [updated] = await db('properties')
 		.returning('*')
-		.where({ property_id })
-		.update({ cleaner_id });
+		.where({ property_id , manager_id})
+		.update(!alreadyCleaner ? {cleaner_id} : {cleaner_id: null});
 
-	return { updated };
+	return updated;
 }
 
 function checkCleaner(cleaner_id, property_id) {
