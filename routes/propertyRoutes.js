@@ -55,29 +55,33 @@ router.get('/cleaners', checkJwt, checkUserInfo, async (req, res) => {
 			user_id
 		);
 
+		const properties = [];
+		const availableCleaners = {};
 		let p = null;
-		let i = -1;
 
-		const propertyCleaners = unreducedPC.reduce(
-			(arr, { property_id, property_name, cleaner_id, cleaner_name }) => {
+		unreducedPC.forEach(
+			({ property_id, property_name, address, cleaner_id, cleaner_name }) => {
 				if (property_id === p) {
-					arr[i].cleaners.push({ cleaner_id, cleaner_name });
+					availableCleaners[property_id].push({ cleaner_id, cleaner_name });
 				} else {
 					p = property_id;
-					arr.push({
+
+					properties.push({
 						property_id,
 						property_name,
-						cleaners: [{ cleaner_id, cleaner_name }],
+						address,
 					});
-					i++;
-				}
 
-				return arr;
-			},
-			[]
+					availableCleaners[property_id] = cleaner_id
+						? [{ cleaner_id, cleaner_name }]
+						: [];
+				}
+			}
 		);
 
-		res.status(200).json({ cleaners, propertyCleaners });
+		res
+			.status(200)
+			.json({ propertyCleaners: { properties, cleaners, availableCleaners } });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
