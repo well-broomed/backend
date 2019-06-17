@@ -48,6 +48,10 @@ router.get('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 			});
 		}
 
+		if (!guest.guest_id) {
+			return res.status(404).json({ error: 'invalid guest id' });
+		}
+
 		res.status(200).json({ guest });
 	} catch (error) {
 		console.error(error);
