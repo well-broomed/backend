@@ -123,11 +123,8 @@ async function getGuest(user_id, guest_id, role) {
 		.where({
 			manager_id: guest.manager_id || user_id,
 		})
-		.leftJoin('available_cleaners as ac', 'prt.cleaner_id', 'ac.cleaner_id')
-		.whereNot('ac.property_id', '=', guest.property_id)
 		.join('users as u', 'prt.cleaner_id', 'u.user_id')
 		.select('prt.cleaner_id', 'u.user_name as cleaner_name')
-		.groupBy('prt.cleaner_id', 'cleaner_name')
 		.orderBy('cleaner_name');
 
 	const reassignments = await db('reassignments as r')
