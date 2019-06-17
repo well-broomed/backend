@@ -104,18 +104,19 @@ async function getGuest(user_id, guest_id, role) {
 		})
 		.andWhereNot({ cleaner_id: guest.cleaner_id })
 		.join('users as u', 'ac.cleaner_id', 'u.user_id')
-		.select('u.user_id as value', 'u.user_name as label')
-		.orderBy('label');
+		.select('u.user_id', 'u.user_name as cleaner_name')
+		.orderBy('cleaner_name');
 
-	const otherCleaners = await db('partners as p')
-		.leftJoin('available_cleaners as ac', 'p.cleaner_id', 'ac.cleaner_id')
+	const otherCleaners = await db('partners as prt')
 		.where({
 			manager_id: guest.manager_id || user_id,
 		})
-		.andWhere({ ['ac.property_id']: null })
-		.join('users as u', 'p.cleaner_id', 'u.user_id')
-		.select('p.cleaner_id as value', 'u.user_name as label')
-		.orderBy('label');
+		.leftJoin('available_cleaners as ac', 'prt.cleaner_id', 'ac.cleaner_id')
+		.whereNot('ac.property_id', '=', guest.property_id)
+		.join('users as u', 'prt.cleaner_id', 'u.user_id')
+		.select('prt.cleaner_id', 'u.user_name as cleaner_name')
+		.groupBy('prt.cleaner_id', 'cleaner_name')
+		.orderBy('cleaner_name');
 
 	const reassignments = await db('reassignments as r')
 		.where({ guest_id })
