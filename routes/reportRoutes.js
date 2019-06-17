@@ -16,16 +16,12 @@ const reportModel = require('../models/reportModel');
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
 
-	// Check role
-	if (role !== 'manager') {
-		return res.status(403).json({ error: 'not a manager' });
-	}
-
 	const timeNow = moment.utc().format();
 
 	try {
 		const { recent, current, upcoming } = await reportModel.getReports(
 			user_id,
+			role,
 			timeNow
 		);
 
@@ -70,15 +66,14 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 router.get('/past', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
 
-	// Check role
-	if (role !== 'manager') {
-		return res.status(403).json({ error: 'not a manager' });
-	}
-
 	const timeNow = moment.utc().format();
 
 	try {
-		const pastReports = await reportModel.getPastReports(user_id, timeNow);
+		const pastReports = await reportModel.getPastReports(
+			user_id,
+			role,
+			timeNow
+		);
 
 		res.status(200).json({ pastReports });
 	} catch (error) {

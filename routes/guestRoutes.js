@@ -43,9 +43,13 @@ router.get('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 		// Add manager to available cleaners
 		if (role === 'manager' && user_id !== guest.cleaner_id) {
 			guest.availableCleaners.push({
-				value: user_id,
-				label: user_name
+				cleaner_id: user_id,
+				cleaner_name: user_name,
 			});
+		}
+
+		if (!guest.guest_id) {
+			return res.status(404).json({ error: 'invalid guest id' });
 		}
 
 		res.status(200).json({ guest });
@@ -73,7 +77,7 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			.seconds(0)
 			.milliseconds(0),
 		email,
-		cleaner_id
+		cleaner_id,
 	};
 
 	// Check role
@@ -126,7 +130,7 @@ router.put('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 		checkin,
 		checkout,
 		email,
-		cleaner_id
+		cleaner_id,
 	} = req.body;
 
 	const guestInfo = {
@@ -135,7 +139,7 @@ router.put('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 		checkin,
 		checkout,
 		email,
-		cleaner_id
+		cleaner_id,
 	};
 
 	// Check role
@@ -287,7 +291,7 @@ router.post(
 			}
 
 			res.status(200).json({
-				newCleaner
+				newCleaner,
 			});
 		} catch (error) {
 			console.error(error);

@@ -39,11 +39,17 @@ function getGuests(user_id, role) {
 				.groupBy('g.guest_id', 'p.property_name', 'p.img_url', 'cleaner_name')
 				.orderBy('g.checkin')
 		: db('guests as g')
+				// Only return guests where partnered with manager
+				// .join('properties as p', 'g.property_id', 'p.property_id')
+				// .join('partners as prt', 'p.manager_id', 'prt.manager_id')
+				// .where({
+				// 	'prt.cleaner_id': user_id,
+				// })
+				// .join('users as u', 'p.manager_id', 'u.user_id')
+
+				// Only return guests where assigned as cleaner
+				.where({ 'g.cleaner_id': user_id })
 				.join('properties as p', 'g.property_id', 'p.property_id')
-				.join('partners as prt', 'p.manager_id', 'prt.manager_id')
-				.where({
-					'prt.cleaner_id': user_id,
-				})
 				.join('users as u', 'p.manager_id', 'u.user_id')
 				.leftJoin('guest_tasks as gt', 'g.guest_id', 'gt.guest_id')
 				.select(
@@ -75,10 +81,16 @@ async function getGuest(user_id, guest_id, role) {
 						'u.user_name as cleaner_name'
 					)
 					.first()
-			: await db('properties')
+			: await db('guests as g')
+					// Only return guest if partnered with manager
+					// .join('properties as p', 'g.property_id', 'p.property_id')
+					// .join('partners', 'p.manager_id', 'partners.manager_id')
+					// .where({ 'partners.cleaner_id': user_id, guest_id })
+					// .join('users as u', 'p.manager_id', 'u.user_id')
+
+					// Only return guest if assigned
+					.where({ 'g.cleaner_id': user_id, guest_id })
 					.join('properties as p', 'g.property_id', 'p.property_id')
-					.join('partners', 'p.manager_id', 'partners.manager_id')
-					.where({ 'partners.cleaner_id': user_id, guest_id })
 					.join('users as u', 'p.manager_id', 'u.user_id')
 					.select(
 						'g.*',
@@ -104,18 +116,16 @@ async function getGuest(user_id, guest_id, role) {
 		})
 		.andWhereNot({ cleaner_id: guest.cleaner_id })
 		.join('users as u', 'ac.cleaner_id', 'u.user_id')
-		.select('u.user_id as value', 'u.user_name as label')
-		.orderBy('label');
+		.select('u.user_id', 'u.user_name as cleaner_name')
+		.orderBy('cleaner_name');
 
-	const otherCleaners = await db('partners as p')
-		.leftJoin('available_cleaners as ac', 'p.cleaner_id', 'ac.cleaner_id')
+	const otherCleaners = await db('partners as prt')
 		.where({
 			manager_id: guest.manager_id || user_id,
 		})
-		.andWhere({ ['ac.property_id']: null })
-		.join('users as u', 'p.cleaner_id', 'u.user_id')
-		.select('p.cleaner_id as value', 'u.user_name as label')
-		.orderBy('label');
+		.join('users as u', 'prt.cleaner_id', 'u.user_id')
+		.select('prt.cleaner_id', 'u.user_name as cleaner_name')
+		.orderBy('cleaner_name');
 
 	const reassignments = await db('reassignments as r')
 		.where({ guest_id })
