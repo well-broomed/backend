@@ -117,17 +117,18 @@ async function getPropertyCleaners(manager_id) {
 
 	const unreducedPC = await db('properties as p')
 		.where({ manager_id })
-		.join('available_cleaners as ac', function() {
+		.leftJoin('available_cleaners as ac', function() {
 			this.on('p.property_id', '=', 'ac.property_id').on(
 				'p.cleaner_id',
 				'!=',
 				'ac.cleaner_id'
 			);
 		})
-		.join('users as u', 'ac.cleaner_id', 'u.user_id')
+		.leftJoin('users as u', 'ac.cleaner_id', 'u.user_id')
 		.select(
 			'p.property_id',
 			'p.property_name',
+			'p.address',
 			'ac.cleaner_id',
 			'u.user_name as cleaner_name'
 		)
