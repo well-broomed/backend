@@ -42,9 +42,9 @@ router.get('/defaults', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
-/** Get Properties and cleaners (for adding/adding guests) */
+/** Get Properties and cleaners (for adding/editing guests) */
 router.get('/cleaners', checkJwt, checkUserInfo, async (req, res) => {
-	const { user_id, role } = req.user;
+	const { user_id, user_name, role } = req.user;
 
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
@@ -60,7 +60,15 @@ router.get('/cleaners', checkJwt, checkUserInfo, async (req, res) => {
 		let p = null;
 
 		unreducedPC.forEach(
-			({ property_id, property_name, address, cleaner_id, cleaner_name }) => {
+			({
+				property_id,
+				property_name,
+				address,
+				default_cleaner_id,
+				default_cleaner_name,
+				cleaner_id,
+				cleaner_name,
+			}) => {
 				if (property_id === p) {
 					availableCleaners[property_id].push({ cleaner_id, cleaner_name });
 				} else {
@@ -70,18 +78,34 @@ router.get('/cleaners', checkJwt, checkUserInfo, async (req, res) => {
 						property_id,
 						property_name,
 						address,
+						default_cleaner_id,
 					});
 
-					availableCleaners[property_id] = cleaner_id
-						? [{ cleaner_id, cleaner_name }]
+					availableCleaners[property_id] = default_cleaner_id
+						? [
+								{
+									cleaner_id: default_cleaner_id,
+									cleaner_name: default_cleaner_name + ' (default cleaner)',
+								},
+						  ]
 						: [];
+
+					if (cleaner_id) {
+						availableCleaners[property_id].push({ cleaner_id, cleaner_name });
+					}
 				}
 			}
 		);
 
-		res
-			.status(200)
-			.json({ propertyCleaners: { properties, cleaners, availableCleaners } });
+		const otherCleaners = cleaners.map(({ cleaner_id, cleaner_name }) => ({
+			cleaner_id,
+			cleaner_name: cleaner_name + '*',
+		}));
+		otherCleaners.unshift({ cleaner_id: user_id, cleaner_name: user_name });
+
+		res.status(200).json({
+			propertyCleaners: { properties, otherCleaners, availableCleaners },
+		});
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });

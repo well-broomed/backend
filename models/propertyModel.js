@@ -124,10 +124,13 @@ async function getPropertyCleaners(manager_id) {
 			);
 		})
 		.leftJoin('users as u', 'ac.cleaner_id', 'u.user_id')
+		.leftJoin('users as d', 'p.cleaner_id', 'd.user_id')
 		.select(
 			'p.property_id',
 			'p.property_name',
 			'p.address',
+			'p.cleaner_id as default_cleaner_id',
+			'd.user_name as default_cleaner_name',
 			'ac.cleaner_id',
 			'u.user_name as cleaner_name'
 		)
