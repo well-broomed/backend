@@ -253,94 +253,94 @@ router.delete('/:property_id', checkJwt, checkUserInfo, (req, res) => {
 	})
 })
 
-// /** Update availability */
-// router.put(
-// 	'/:property_id/available/:cleaner_id*?',
-// 	checkJwt,
-// 	checkUserInfo,
-// 	async (req, res) => {
-// 		const { user_id, role } = req.user;
-// 		const { property_id, cleaner_id } = req.params;
-// 		const { available } = req.body;
+/** Update availability */
+router.put(
+	'/:property_id/available/:cleaner_id*?',
+	checkJwt,
+	checkUserInfo,
+	async (req, res) => {
+		const { user_id, role } = req.user;
+		const { property_id, cleaner_id } = req.params;
+		const { available } = req.body;
 
-// 		// If cleaner_id is provided, user_id is the property manager
-// 		if (cleaner_id && +cleaner_id !== user_id && role !== 'manager') {
-// 			return res.status(403).json({ error: 'not a manager' });
-// 		}
+		// If cleaner_id is provided, user_id is the property manager
+		if (cleaner_id && +cleaner_id !== user_id && role !== 'manager') {
+			return res.status(403).json({ error: 'not a manager' });
+		}
 
-// 		try {
-// 			// Check property manager
-// 			if (
-// 				cleaner_id &&
-// 				!(await propertyModel.checkOwner(user_id, property_id))
-// 			) {
-// 				return res.status(404).json({ error: 'invalid property' });
-// 			}
+		try {
+			// Check property manager
+			if (
+				cleaner_id &&
+				!(await propertyModel.checkOwner(user_id, property_id))
+			) {
+				return res.status(404).json({ error: 'invalid property' });
+			}
 
-// 			// Check partnership
-// 			if (
-// 				!(await propertyModel.checkCleaner(cleaner_id || user_id, property_id))
-// 			) {
-// 				return res.status(404).json({ error: 'invalid assistant' });
-// 			}
+			// Check partnership
+			if (
+				!(await propertyModel.checkCleaner(cleaner_id || user_id, property_id))
+			) {
+				return res.status(404).json({ error: 'invalid assistant' });
+			}
 
-// 			// Add or remove availability
-// 			const updated = await propertyModel.updateAvailability(
-// 				cleaner_id || user_id,
-// 				property_id,
-// 				available
-// 			);
+			// Add or remove availability
+			const updated = await propertyModel.updateAvailability(
+				cleaner_id || user_id,
+				property_id,
+				available
+			);
 
-// 			if (!updated) {
-// 				return res.status(500).json({ error: 'something went wrong' });
-// 			}
+			if (!updated) {
+				return res.status(500).json({ error: 'something went wrong' });
+			}
 
-// 			const mailgun = new Mailgun({
-// 				apiKey: mailgunKey,
-// 				domain: mailgunDomain
-// 			});
+			const mailgun = new Mailgun({
+				apiKey: mailgunKey,
+				domain: mailgunDomain
+			});
 
-// 			const cleaner = await userModel.getUserById(cleaner_id);
-// 			const newProperty = await propertyModel.getProperty(
-// 				user_id,
-// 				property_id,
-// 				role
-// 			);
+			const cleaner = await userModel.getUserById(cleaner_id);
+			const newProperty = await propertyModel.getProperty(
+				user_id,
+				property_id,
+				role
+			);
 
-// 			console.log(newProperty, available);
+			console.log(newProperty, available);
 
-// 			const data = {
-// 				from: `Well-Broomed <Broom@well-broomed.com>`,
-// 				to: `${cleaner.email}`,
-// 				subject: 'Reassignment',
-// 				html: available
-// 					? `Hello ${cleaner.user_name}, you have been made available for ${
-// 							newProperty.property_name
-// 					  } located at ${
-// 							newProperty.address
-// 					  }. Please contact your manager for further details or questions.`
-// 					: `Hello ${cleaner.user_name}, you have been made unavailable for ${
-// 							newProperty.property_name
-// 					  } located at ${
-// 							newProperty.address
-// 					  }. Please contact your manager for further details or questions.`
-// 			};
+			const data = {
+				from: `Well-Broomed <Broom@well-broomed.com>`,
+				to: `${cleaner.email}`,
+				subject: 'Reassignment',
+				html: available
+					? `Hello ${cleaner.user_name}, you have been made available for ${
+							newProperty.property_name
+					  } located at ${
+							newProperty.address
+					  }. Please contact your manager for further details or questions.`
+					: `Hello ${cleaner.user_name}, you have been made unavailable for ${
+							newProperty.property_name
+					  } located at ${
+							newProperty.address
+					  }. Please contact your manager for further details or questions.`
+			};
 
-// 			mailgun.messages().send(data, function(err, body) {
-// 				if (err) {
-// 					console.log('Mailgun got an error: ', err);
-// 					return { mailgunErr: err };
-// 				} else console.log('body:', body);
-// 			});
+			mailgun.messages().send(data, function(err, body) {
+				if (err) {
+					console.log('Mailgun got an error: ', err);
+					return { mailgunErr: err };
+				} else console.log('body:', body);
+			});
 
-// 			console.log(updated);
+			console.log(updated);
 
-// 			res.status(200).json({ updated });
-// 		} catch (error) {
-// 			console.error(error);
-// 			res.status(500).json({ error });
-// 		}
-// 	}
-// );
+			res.status(200).json({ updated });
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error });
+		}
+	}
+);
 
 module.exports = router;
