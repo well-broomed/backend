@@ -84,7 +84,7 @@ async function getDefaultProperties(user_id, role) {
 		role === 'manager'
 			? await db('properties as p')
 					.where({ manager_id: user_id })
-					.join('users as u', 'p.cleaner_id', 'u.user_id')
+					.leftJoin('users as u', 'p.cleaner_id', 'u.user_id')
 					.select(
 						'p.property_id',
 						'p.property_name',
@@ -95,7 +95,7 @@ async function getDefaultProperties(user_id, role) {
 			: await db('properties as p')
 					.join('partners as prt', 'p.manager_id', 'prt.manager_id')
 					.where({ 'prt.cleaner_id': user_id })
-					.join('users as u', 'p.cleaner_id', 'u.user_id')
+					.leftJoin('users as u', 'p.cleaner_id', 'u.user_id')
 					.select(
 						'p.property_id',
 						'p.property_name',
