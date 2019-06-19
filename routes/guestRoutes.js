@@ -120,7 +120,7 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		if(cleaner && guest_id) { // If both inquiry of cleaner and guest addition were successful
 
 		const property = await propertyModel.getProperty(user_id, property_id, role);
-		console.log({property})
+
 		const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
 
 		const data = {
@@ -188,10 +188,15 @@ router.put('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(404).json({ error: 'invalid property' });
 		}
 
+		//Gather all information on previous assigned cleaner before changes are made
+		const previousGuestInfo = await guestModel.getGuest(user_id, guest_id, role)
+		const previousCleaner = await userModel.getPartner(user_id, previousGuestInfo.cleaner_id);
+		const cleaner = await userModel.getPartner(user_id, cleaner_id);
+
 		// Check cleaner (need to update this to take availability into account)
 		if (
 			user_id !== cleaner_id &&
-			!(await userModel.getPartner(user_id, cleaner_id))
+			!(cleaner)
 		) {
 			return res.status(404).json({ error: 'invalid assistant' });
 		}
@@ -210,7 +215,36 @@ router.put('/:guest_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(500).json({ error: 'something went wrong' });
 		}
 
-		// TODO: notify new cleaner and previous cleaner if reassigned
+		const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
+		const property = await propertyModel.getProperty(user_id, property_id, role);
+
+		const  newCleanerData = {
+			from: `Well-Broomed <Broom@well-broomed.com>`,
+			to: `${cleaner.email}`,
+			subject: 'New Guest Assignment',
+			html: `Hello ${cleaner.user_name}, you have just been assigned as the cleaner for the stay of ${guestInfo.guest_name} at ${property.property_name}. They will be arriving at ${guestInfo.checkin}.`
+		};
+
+		const prevCleanerData = {
+			from: `Well-Broomed <Broom@well-broomed.com>`,
+			to: `${previousCleaner.email}`,
+			subject: 'Guest Unassigned',
+			html: `Hello ${previousCleaner.user_name}, you have been removed as the cleaner for the stay of ${guestInfo.guest_name} at ${property.property_name}`
+		}
+
+		mailgun.messages().send(newCleanerData, function(err, body) {
+			if (err) {
+				console.log('Mailgun got an error: ', err);
+				return { mailgunErr: err };
+			} else console.log('body:', body);
+		});
+
+		mailgun.messages().send(prevCleanerData, function(err, body) {
+			if (err) {
+				console.log('Mailgun got an error: ', err);
+				return { mailgunErr: err };
+			} else console.log('body:', body);
+		});
 
 		res.status(200).json({ updated });
 	} catch (error) {
