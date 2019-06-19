@@ -38,7 +38,7 @@ async function getPartners(manager_id) {
 		.join('users as u', 'prt.cleaner_id', 'u.user_id')
 		.select(
 			'prt.cleaner_id',
-			'u.user_name',
+			'u.user_name as cleaner_name',
 			'u.img_url',
 			'u.address',
 			'u.email',
