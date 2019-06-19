@@ -46,17 +46,17 @@ async function getProperties(user_id, role) {
 					)
 					.groupByRaw(`${managerPropertyFields}, cleaner_name`)
 					.orderBy('property_name') // Could be improved by using natural-sort
-			: await db('properties as p')
-					.join('partners as prt', 'p.manager_id', 'prt.manager_id')
+			: await db('partners as prt')
 					.where({ 'prt.cleaner_id': user_id })
+					.join('properties as p', 'prt.manager_id', 'p.manager_id')
 					.join('users as u', 'p.manager_id', 'u.user_id')
-					.leftJoin(
-						'available_cleaners as ac',
-						'p.property_id',
-						'ac.property_id'
-					)
-					.where({ 'ac.cleaner_id': user_id })
-					.orWhere({ 'ac.cleaner_id': null })
+					.leftJoin('available_cleaners as ac', function() {
+						this.on('prt.cleaner_id', '=', 'ac.cleaner_id').andOn(
+							'p.property_id',
+							'=',
+							'ac.property_id'
+						);
+					})
 					.leftJoin('tasks as t', 'p.property_id', 't.property_id')
 					.select(
 						knex.raw(
@@ -85,7 +85,7 @@ async function getDefaultProperties(user_id, role) {
 		role === 'manager'
 			? await db('properties as p')
 					.where({ manager_id: user_id })
-					.join('users as u', 'p.cleaner_id', 'u.user_id')
+					.leftJoin('users as u', 'p.cleaner_id', 'u.user_id')
 					.select(
 						'p.property_id',
 						'p.property_name',
@@ -96,7 +96,7 @@ async function getDefaultProperties(user_id, role) {
 			: await db('properties as p')
 					.join('partners as prt', 'p.manager_id', 'prt.manager_id')
 					.where({ 'prt.cleaner_id': user_id })
-					.join('users as u', 'p.cleaner_id', 'u.user_id')
+					.leftJoin('users as u', 'p.cleaner_id', 'u.user_id')
 					.select(
 						'p.property_id',
 						'p.property_name',
