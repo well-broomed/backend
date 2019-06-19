@@ -13,6 +13,11 @@ const guestModel = require('../models/guestModel');
 const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
 
+// Mailgun 
+const mailgunKey = process.env.MAILGUN_KEY;
+const mailgunDomain = process.env.MAILGUN_URL;
+const Mailgun = require('mailgun-js');
+
 // Routes
 /** Get guests by user_id */
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
@@ -92,10 +97,11 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		}
 
 		// Check cleaner (need to update this to take availability into account)
+		const cleaner = await userModel.getPartner(user_id, cleaner_id);
 
 		// make an exception is the manager is self-cleaning
 		if (Number(cleaner_id) !== Number(user_id)) {
-			if (cleaner_id && !(await userModel.getPartner(user_id, cleaner_id))) {
+			if (cleaner_id && !(cleaner)) {
 				return res.status(404).json({ error: 'invalid assistant' });
 			}
 		}
@@ -111,6 +117,27 @@ router.post('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(500).json({ error: 'something went wrong' });
 		}
 
+		if(cleaner && guest_id) { // If both inquiry of cleaner and guest addition were successful
+
+		const property = await propertyModel.getProperty(user_id, property_id, role);
+		console.log({property})
+		const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
+
+		const data = {
+			from: `Well-Broomed <Broom@well-broomed.com>`,
+			to: `${cleaner.email}`,
+			subject: 'New Guest Assignment',
+			html: `Hello ${cleaner.user_name}, you have just been assigned as the cleaner for the stay of ${guestInfo.guest_name} at ${property.property_name}. They will be arriving at ${guestInfo.checkin}.`
+		};
+
+		mailgun.messages().send(data, function(err, body) {
+			if (err) {
+				console.log('Mailgun got an error: ', err);
+				return { mailgunErr: err };
+			} else console.log('body:', body);
+		});
+		}
+		
 		// TODO: notify cleaner of new guest
 
 		res.status(200).json({ guest_id });
