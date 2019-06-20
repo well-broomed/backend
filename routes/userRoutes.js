@@ -15,7 +15,6 @@ const rp = require('request-promise');
 
 /* Check for a valid token, add the user to our db if they aren't registered, and create a partnership if provided a valid invite code */
 router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
-	console.log('LOGIN INITIATED');
 	const { nickname: user_name, email, picture: img_url, exp } = req.user;
 	const { role } = req.body;
 	const { inviteCode } = req.params;
@@ -43,7 +42,6 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 
 		if (user.notUnique) {
 			// user_name and/or email are already taken
-			console.log('not unique')
 			return res.status(409).json({ notUnique });
 		}
 
@@ -60,8 +58,6 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 
 		// Make a new token with the user data from our backend
 		const userInfo = generateToken(user, exp);
-
-		console.log('PRE-RES');
 
 		// Return user info
 		return res.status(200).json({ userInfo, inviteStatus, user });
