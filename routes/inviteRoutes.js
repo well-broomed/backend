@@ -33,21 +33,17 @@ router.get('/accept/:inviteCode', checkJwt, checkUserInfo, (req, res) => {
 /** Invite a user */
 router.post('/', checkJwt, checkUserInfo, (req, res) => {
 
-	console.log('INVITE INITIATED', req.body);
-
 	const { user_id: manager_id, role } = req.user;
 	const { cleaner_email } = req.body;
 	// TODO: verify arguments are properly formatted and respond with errors for bad strings
 
 	// Verify that user is a manager
 	if (role !== 'manager') {
-		console.log('bad role')
 		return res.status(403).json({ error: 'Must be manager to invite users' });
 	}
 
 	// Improve this to detect malformed email strings
 	if (!cleaner_email) {
-		console.log('bad email')
 		return res.status(400).json({ error: 'Must provide valid email' });
 	}
 
@@ -55,7 +51,6 @@ router.post('/', checkJwt, checkUserInfo, (req, res) => {
 		.inviteUser(manager_id, cleaner_email)
 		.then(({ alreadyInvited, alreadyPartnered, inviteCode, mailgunErr }) => {
 			if (!inviteCode) {
-				console.log('bad code')
 				res.status(403).json({ alreadyInvited, alreadyPartnered });
 			}
 			else if(mailgunErr){
@@ -75,7 +70,6 @@ router.delete('/:inviteCode', checkJwt, checkUserInfo, (req, res) => {
 	let inviteCode = req.params.inviteCode;
 
 	inviteModel.deleteInvite(inviteCode).then(status => {
-		console.log(status);
 		return res.status(200).json({message: `Invite deletion successful.`})
 	})
 })
@@ -102,7 +96,6 @@ router.get('/info/:inviteCode', (req, res) => {
 			managerInfo.img_url = status.img_url;
 			// assign profile to inviteInfo object
 			inviteInfo.manager_profile = managerInfo;
-			console.log(inviteInfo, 'final info');
 			return res.status(200).json({inviteInfo: inviteInfo})
 		}).catch(err => {
 			console.log(err);
@@ -118,10 +111,8 @@ router.get('/info/:inviteCode', (req, res) => {
 
 router.get('/all', checkJwt, checkUserInfo, (req, res) => {
 	let manager_id = req.user.user_id;
-	console.log('manager id', manager_id);
 
 	inviteModel.getAllInvites(manager_id).then(status => {
-		console.log(status, 'all invites');
 		return res.status(200).json({invites: status})
 	}).catch(err => {
 		console.log(err);

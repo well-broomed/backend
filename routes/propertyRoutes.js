@@ -19,8 +19,6 @@ const Mailgun = require('mailgun-js');
 /** Get properties by user_id */
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
-	console.log('PROPERTIES FETCH')
-
 	try {
 		const properties = await propertyModel.getProperties(user_id, role);
 
