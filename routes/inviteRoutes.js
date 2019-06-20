@@ -115,6 +115,18 @@ router.get('/info/:inviteCode', (req, res) => {
 })
 
 /** Fetch information about all pending invitations */
-// TODO
+
+router.get('/all', checkJwt, checkUserInfo, (req, res) => {
+	let manager_id = req.user.user_id;
+	console.log('manager id', manager_id);
+
+	inviteModel.getAllInvites(manager_id).then(status => {
+		console.log(status, 'all invites');
+		return res.status(200).json({invites: status})
+	}).catch(err => {
+		console.log(err);
+		return res.status(500).json({error: `Internal server error.`})
+	})
+})
 
 module.exports = router;

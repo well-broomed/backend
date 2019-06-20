@@ -13,6 +13,7 @@ module.exports = {
 	acceptInvite,
 	deleteInvite,
 	getInviteInfo,
+	getAllInvites,
 };
 
 async function inviteUser(manager_id, email) {
@@ -127,4 +128,8 @@ function deleteInvite(inviteCode){
 
 function getInviteInfo(inviteCode){
 	return db.select('*').from('invites').where({inviteCode}).first();
+}
+
+function getAllInvites(manager_id){
+	return db.select('*').from('invites').where({manager_id});
 }
