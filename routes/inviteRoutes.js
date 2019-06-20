@@ -8,6 +8,7 @@ const checkUserInfo = require('../middleware/checkUserInfo');
 
 // Helpers
 const inviteModel = require('../models/inviteModel');
+const userModel = require('../models/userModel');
 
 /** Accept an invitation */
 router.get('/accept/:inviteCode', checkJwt, checkUserInfo, (req, res) => {
@@ -78,5 +79,42 @@ router.delete('/:inviteCode', checkJwt, checkUserInfo, (req, res) => {
 		return res.status(200).json({message: `Invite deletion successful.`})
 	})
 })
+
+/** Fetch information about a specific invitation code */
+
+router.get('/info/:inviteCode', (req, res) => {
+	let inviteCode = req.params.inviteCode;
+
+	inviteModel.getInviteInfo(inviteCode).then(status => {
+		if(!status || status === []){
+			// handle invalid codes
+			return res.status(404).json({message: `Invitation not found.`})
+		}
+
+		let inviteInfo = status;
+
+		// retrieve profile information of the inviting manager
+		userModel.getUserById(inviteInfo.manager_id).then(status => {
+			let managerInfo = {};
+			// extract necessary information
+			managerInfo.email = status.email;
+			managerInfo.user_name = status.user_name;
+			managerInfo.img_url = status.img_url;
+			// assign profile to inviteInfo object
+			inviteInfo.manager_profile = managerInfo;
+			console.log(inviteInfo, 'final info');
+			return res.status(200).json({inviteInfo: inviteInfo})
+		}).catch(err => {
+			console.log(err);
+			return res.status(500).json({error: `Internal server error.`})
+		})
+	}).catch(err => {
+		console.log(err);
+		return res.status(500).json({error: `Internal server error.`})
+	})
+})
+
+/** Fetch information about all pending invitations */
+// TODO
 
 module.exports = router;

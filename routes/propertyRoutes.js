@@ -19,14 +19,15 @@ const Mailgun = require('mailgun-js');
 /** Get properties by user_id */
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
+	console.log('PROPERTIES FETCH')
 
 	try {
 		const properties = await propertyModel.getProperties(user_id, role);
 
-		res.status(200).json({ properties });
+		return res.status(200).json({ properties });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -40,10 +41,10 @@ router.get('/defaults', checkJwt, checkUserInfo, async (req, res) => {
 			role
 		);
 
-		res.status(200).json({ defaultProperties });
+		return res.status(200).json({ defaultProperties });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -108,12 +109,12 @@ router.get('/cleaners', checkJwt, checkUserInfo, async (req, res) => {
 		}));
 		otherCleaners.unshift({ cleaner_id: user_id, cleaner_name: user_name });
 
-		res.status(200).json({
+		return res.status(200).json({
 			propertyCleaners: { properties, otherCleaners, availableCleaners },
 		});
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -133,10 +134,10 @@ router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(404).json({ error: 'property not found' });
 		}
 
-		res.status(200).json({ property });
+		return res.status(200).json({ property });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -179,10 +180,10 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(409).json({ notUnique });
 		}
 
-		res.status(201).json({ property_id });
+		return res.status(201).json({ property_id });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -231,10 +232,10 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(404).json({ error: 'invalid property' });
 		}
 
-		res.status(200).json({ updated });
+		return res.status(200).json({ updated });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -335,10 +336,10 @@ router.put(
 
 			console.log(updated);
 
-			res.status(200).json({ updated });
+			return res.status(200).json({ updated });
 		} catch (error) {
 			console.error(error);
-			res.status(500).json({ error });
+			return res.status(500).json({ error });
 		}
 	}
 );
