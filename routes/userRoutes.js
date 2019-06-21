@@ -147,8 +147,6 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 
 	rp.patch(auth0user)
 		.then(status => {
-
-			console.log("UPDATE USER");
 			// parse the returned updated auth0 user object for our internal api
 			const userUpdate = {
 				user_name: status.username,
