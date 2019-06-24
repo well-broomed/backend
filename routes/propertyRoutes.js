@@ -30,8 +30,16 @@ router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 		partnerModel.getManagerIds(user_id).then(manager_ids => {
 			let manager_properties = [];
 			for(let i = 0; i < manager_ids.length; i++){
-				propertyModel.getProperties(manager_ids[i].manager_id, 'manager').then(property => {
-					manager_properties.push(property[0]);
+				propertyModel.getProperties(manager_ids[i].manager_id, 'manager').then(properties => {
+					
+					// for the first manager, use the returned array
+					if(i === 0){
+						manager_properties = properties;
+					} else {
+						// for subsqeuent managers, push into existing array
+						manager_properties[0].push(properties)
+					}
+					
 					// when we reach end of manager_ids, return collected properties
 					if(i === manager_ids.length - 1){
 						return res.status(200).json({properties: manager_properties});
