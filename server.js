@@ -29,6 +29,7 @@ const taskRoutes = require('./routes/taskRoutes');
 const guestRoutes = require('./routes/guestRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const cleanerRoutes = require('./routes/cleanerRoutes');
+const availabilityRoutes = require('./routes/availabilityRoutes');
 
 // Endpoints
 server.use('/api/users', userRoutes);
@@ -38,6 +39,7 @@ server.use('/api/tasks', taskRoutes);
 server.use('/api/guests', guestRoutes);
 server.use('/api/reports', reportRoutes);
 server.use('/api/cleaners', cleanerRoutes);
+server.use('/api/avail', availabilityRoutes);
 
 // Error handler
 server.use(errorHandler);
