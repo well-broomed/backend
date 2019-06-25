@@ -15,6 +15,17 @@ const mailgunKey = process.env.MAILGUN_KEY;
 const mailgunDomain = process.env.MAILGUN_URL;
 const Mailgun = require('mailgun-js');
 
+//Image Uploading
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({storage: storage});
+const cloudinary = require('cloudinary')
+cloudinary.config({
+	cloud_name:process.env.CLOUD_NAME,
+	api_key: process.env.CLOUDINARY_API_KEY,
+	api_secret: process.env.CLOUDINARY_API_SECRET
+})
+
 // Routes
 /** Get properties by user_id */
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
@@ -141,35 +152,50 @@ router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 });
 
 /** Add a new property */
-router.post('/', checkJwt, checkUserInfo, async (req, res) => {
+router.post('/', checkJwt, checkUserInfo, upload.single('File'), async (req, res) => {
 	const { user_id: manager_id, role } = req.user;
 	const {
 		property_name,
 		address,
-		img_url,
-		cleaner_id,
 		guest_guide,
 		assistant_guide,
+		//cleaner_id
 	} = req.body;
 
 	const propertyInfo = {
 		manager_id,
 		property_name,
 		address,
-		img_url,
-		cleaner_id,
 		guest_guide,
 		assistant_guide,
 	};
+
+	if(req.file){
+			cloudinary.v2.uploader.upload(req.file, {
+			use_filename: true,
+			unique_filename:false
+		}, (error, result) => {
+			console.log(error, result)
+			if(result)
+				propertyInfo.img_url = result.secure_url
+			if(error)
+				console.log(error)
+		})
+
+	
+	}
+	
+	console.log("body", req.body, "file", req.file, "img_url", propertyInfo.img_url || null);
+
 
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
 	}
 
 	try {
-		if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) {
-			return res.status(404).json({ error: 'invalid assistant' });
-		}
+		// if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) { Redudant if a cleaner isn't assigned until after creating a property
+		// 	return res.status(404).json({ error: 'invalid assistant' });
+		// }
 
 		const { property_id, notUnique } = await propertyModel.addProperty(
 			propertyInfo
