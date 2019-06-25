@@ -19,7 +19,10 @@ const Mailgun = require('mailgun-js');
 const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({storage: storage});
-const cloudinary = require('cloudinary')
+const path = require('path');
+const Datauri = require('datauri');
+const dUri = new Datauri();
+const cloudinary = require('cloudinary');
 cloudinary.config({
 	cloud_name:process.env.CLOUD_NAME,
 	api_key: process.env.CLOUDINARY_API_KEY,
@@ -170,20 +173,6 @@ router.post('/', checkJwt, checkUserInfo, upload.single('File'), async (req, res
 		assistant_guide,
 	};
 
-	if(req.file){
-			cloudinary.v2.uploader.upload(req.file, {
-			use_filename: true,
-			unique_filename:false
-		}, (error, result) => {
-			console.log(error, result)
-			if(result)
-				propertyInfo.img_url = result.secure_url
-			if(error)
-				console.log(error)
-		})
-
-	
-	}
 	
 	console.log("body", req.body, "file", req.file, "img_url", propertyInfo.img_url || null);
 
@@ -197,15 +186,48 @@ router.post('/', checkJwt, checkUserInfo, upload.single('File'), async (req, res
 		// 	return res.status(404).json({ error: 'invalid assistant' });
 		// }
 
-		const { property_id, notUnique } = await propertyModel.addProperty(
-			propertyInfo
-		);
+		if (req.file) {
+			const file = dUri.format(
+				path.extname(req.file.originalname).toString(),
+				req.file.buffer
+			).content;
 
-		if (notUnique) {
-			return res.status(409).json({ notUnique });
+			cloudinary.v2.uploader.upload(
+				file,
+				{
+					use_filename: true,
+					unique_filename: false
+				},
+				async (error, result) => {
+					console.log(error, result);
+					if (result) {
+						propertyInfo.img_url = result.secure_url;
+						console.log(propertyInfo);
+						const {
+							property_id,
+							notUnique
+						} = await propertyModel.addProperty(propertyInfo);
+
+						if (notUnique) {
+							return res.status(409).json({ notUnique });
+						}
+
+						res.status(201).json({ property_id });
+					} else if (error) console.log(error);
+				}
+			);
+		} else {
+			const { property_id, notUnique } = await propertyModel.addProperty(
+				propertyInfo
+			);
+
+			if (notUnique) {
+				return res.status(409).json({ notUnique });
+			}
+
+			res.status(201).json({ property_id });
 		}
-
-		res.status(201).json({ property_id });
+		
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
