@@ -165,10 +165,10 @@ function getPastReports(user_id, role, timeNow) {
 	if (role === 'manager') {
 		// Manager pastReports
 		const selectFields =
-			'g.property_id, p.property_name, g.guest_id, g.guest_name, g.cleaner_id, u.user_name as cleaner_name, g.checkout';
+			'g.property_id, p.property_name, g.guest_id, g.guest_name, g.cleaner_id, u.user_name as cleaner_name, g.checkin, g.checkout';
 
 		const groupByFields =
-			'g.property_id, p.property_name, g.guest_id, g.guest_name, g.cleaner_id, cleaner_name, g.checkout';
+			'g.property_id, p.property_name, g.guest_id, g.guest_name, g.cleaner_id, cleaner_name, g.checkin, g.checkout';
 
 		return db('guests as g')
 			.where('g.checkout', '<', timeNow)
@@ -187,10 +187,10 @@ function getPastReports(user_id, role, timeNow) {
 	} else {
 		// Assistant pastReports
 		const selectFields =
-			'g.property_id, p.property_name, g.guest_id, g.guest_name, p.manager_id, u.user_name as manager_name, g.checkout';
+			'g.property_id, p.property_name, g.guest_id, g.guest_name, p.manager_id, u.user_name as manager_name, g.checkin, g.checkout';
 
 		const groupByFields =
-			'g.property_id, p.property_name, g.guest_id, g.guest_name, p.manager_id, manager_name, g.checkout';
+			'g.property_id, p.property_name, g.guest_id, g.guest_name, p.manager_id, manager_name, g.checkin, g.checkout';
 
 		return db('guests as g')
 			.where({ 'g.cleaner_id': user_id })
