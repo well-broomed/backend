@@ -174,8 +174,6 @@ router.post('/', checkJwt, checkUserInfo, upload.single('File'), async (req, res
 	};
 
 	
-	console.log("body", req.body, "file", req.file, "img_url", propertyInfo.img_url || null);
-
 
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
@@ -202,7 +200,7 @@ router.post('/', checkJwt, checkUserInfo, upload.single('File'), async (req, res
 					console.log(error, result);
 					if (result) {
 						propertyInfo.img_url = result.secure_url;
-						console.log(propertyInfo);
+	
 						const {
 							property_id,
 							notUnique
@@ -235,7 +233,7 @@ router.post('/', checkJwt, checkUserInfo, upload.single('File'), async (req, res
 });
 
 /** Update a property */
-router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
+router.put('/:property_id', checkJwt, checkUserInfo, upload.single('File'), async (req, res) => {
 	const { user_id, role } = req.user;
 	const { property_id } = req.params;
 	const {
@@ -265,6 +263,43 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(404).json({ error: 'invalid assistant' });
 		}
 
+		if (req.file) {
+			const file = dUri.format(
+				path.extname(req.file.originalname).toString(),
+				req.file.buffer
+			).content;
+
+			cloudinary.v2.uploader.upload(
+				file,
+				{
+					use_filename: true,
+					unique_filename: false
+				},
+				async (error, result) => {
+					console.log(error, result);
+					if (result) {
+
+						propertyInfo.img_url = result.secure_url;
+
+						const { updated, notUnique } = await propertyModel.updateProperty(
+							user_id,
+							property_id,
+							propertyInfo
+						);
+				
+						if (notUnique) {
+							return res.status(409).json({ notUnique });
+						}
+				
+						if (!updated) {
+							return res.status(404).json({ error: 'invalid property' });
+						}
+				
+						res.status(200).json({ updated });
+					} else if (error) console.log(error);
+			});
+		}
+		else {
 		const { updated, notUnique } = await propertyModel.updateProperty(
 			user_id,
 			property_id,
@@ -280,6 +315,7 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 		}
 
 		res.status(200).json({ updated });
+	}
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error });
