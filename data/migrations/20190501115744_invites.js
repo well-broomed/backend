@@ -22,17 +22,11 @@ exports.up = function(knex, Promise) {
 
 		table.integer('status').defaultTo(0); // {0: pending, 1: accepted, 2: rejected}
 
-		table
-            .timestamp('createdAt')
-            .defaultTo(knex.fn.now());
-        
-        table
-            .timestamp('updatedAt')
-			.defaultTo(knex.fn.now());
-			
-		table.unique(['manager_id', 'email']);
+		table.timestamp('createdAt').defaultTo(knex.fn.now());
 
-		
+		table.timestamp('updatedAt').defaultTo(knex.fn.now());
+
+		table.unique(['manager_id', 'email']);
 	});
 };
 
