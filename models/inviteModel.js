@@ -2,9 +2,19 @@ const db = require('../data/dbConfig');
 
 const randomString = require('../helpers/randomString');
 
+//Mailgun variables
+const mailgunKey = process.env.MAILGUN_KEY;
+const mailgunDomain = process.env.MAILGUN_URL;
+const Mailgun = require('mailgun-js');
+const frontendUrl =
+	process.env.REACT_APP_FRONTEND_URL || `http:/localhost:3000`;
+
 module.exports = {
 	inviteUser,
-	acceptInvite
+	acceptInvite,
+	deleteInvite,
+	getInviteInfo,
+	getAllInvites,
 };
 
 async function inviteUser(manager_id, email) {
@@ -13,7 +23,7 @@ async function inviteUser(manager_id, email) {
 	if (cleaner) {
 		const [alreadyPartnered] = await db('partners').where({
 			manager_id,
-			cleaner_id: cleaner.user_id
+			cleaner_id: cleaner.user_id,
 		});
 
 		if (alreadyPartnered) {
@@ -29,8 +39,9 @@ async function inviteUser(manager_id, email) {
 		return { alreadyInvited: true };
 	}
 
-	// Generate an inviteCode
+	// // Generate an inviteCode
 	const inviteCode = randomString(16);
+	console.log('INVITE CODE', inviteCode);
 
 	// Create an invite
 	const [invite] = await db('invites').insert(
@@ -38,7 +49,30 @@ async function inviteUser(manager_id, email) {
 		'inviteCode'
 	);
 
-	console.log(`Invite code '${invite}' sent to ${email}`);
+	//MailGun
+	const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
+
+	const manager = await db('users')
+		.where({ user_id: manager_id })
+		.select('user_name')
+		.first();
+	//Content of Email Being Sent
+	const data = {
+		from: `${manager.user_name} <${manager.user_name}@well-broomed.com>`,
+		to: email,
+		subject: 'Well-Broomed Invitation',
+		html:
+			'Hello! You have been invited to join a property management team on Well Broomed.' +
+			'If you would like to accept this invitation, please click this link: ' +
+			`${frontendUrl}/invite?` +
+			inviteCode,
+	};
+	mailgun.messages().send(data, function(err, body) {
+		if (err) {
+			console.log('Mailgun got an error: ', err);
+			return { mailgunErr: err };
+		} else console.log('body:', body);
+	});
 
 	return { inviteCode: invite };
 }
@@ -55,7 +89,7 @@ async function acceptInvite(email, inviteCode, cleaner_id) {
 			// Look for existing partnership
 			const [alreadyPartnered] = await db('partners').where({
 				manager_id,
-				cleaner_id
+				cleaner_id,
 			});
 
 			if (alreadyPartnered) {
@@ -90,4 +124,25 @@ async function acceptInvite(email, inviteCode, cleaner_id) {
 	}
 
 	return { inviteStatus: 'invalid' };
+}
+
+function deleteInvite(inviteCode) {
+	return db('invites')
+		.where({ inviteCode })
+		.del();
+}
+
+function getInviteInfo(inviteCode) {
+	return db
+		.select('*')
+		.from('invites')
+		.where({ inviteCode })
+		.first();
+}
+
+function getAllInvites(manager_id) {
+	return db
+		.select('*')
+		.from('invites')
+		.where({ manager_id });
 }

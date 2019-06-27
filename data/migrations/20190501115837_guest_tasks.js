@@ -13,7 +13,7 @@ exports.up = function(knex, Promise) {
 			.notNullable()
 			.references('tasks.task_id');
 
-		table.boolean('completed');
+		table.boolean('completed').defaultTo(false);
 
 		table.unique(['guest_id', 'task_id']);
 	});

@@ -14,17 +14,23 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
+		"cloudinary": "^1.14.0",
 		"cors": "^2.8.5",
-		"dotenv": "^7.0.0",
+		"datauri": "^2.0.0",
+		"dotenv": "^8.0.0",
 		"express": "^4.16.4",
 		"express-jwt": "^5.3.1",
 		"faker": "^4.1.0",
 		"helmet": "^3.14.0",
 		"jsonwebtoken": "^8.5.1",
 		"jwks-rsa": "^1.4.0",
-		"knex": "^0.16.3",
+		"knex": "^0.17.6",
+		"mailgun-js": "^0.22.0",
+		"moment": "^2.24.0",
 		"morgan": "^1.9.1",
-		"pg": "^7.6.1"
+		"multer": "^1.4.1",
+		"pg": "^7.6.1",
+		"request-promise": "^4.2.4"
 	},
 	"devDependencies": {
 		"jest": "^24.5.0",

@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const pg = require('pg');
+// const pg = require('pg');
 
 // pg.defaults.ssl = process.env.PG_SSL
 // 	? !!JSON.parse(String(process.env.PG_SSL))
@@ -13,14 +13,14 @@ module.exports = {
 			host: 'localhost',
 			user: process.env.PG_USER || 'postgres',
 			database: 'well-broomed',
-			password: process.env.PG_PASSWORD
+			password: process.env.PG_PASSWORD,
 		},
 		useNullAsDefault: true,
 		migrations: {
 			directory: './data/migrations',
-			tableName: 'migrations'
+			tableName: 'migrations',
 		},
-		seeds: { directory: './data/seeds' }
+		seeds: { directory: './data/seeds' },
 	},
 
 	production: {
@@ -28,13 +28,13 @@ module.exports = {
 		connection: process.env.DATABASE_URL,
 		pool: {
 			min: 2,
-			max: 10
+			max: 10,
 		},
 		useNullAsDefault: true,
 		migrations: {
 			directory: './data/migrations',
-			tableName: 'migrations'
+			tableName: 'migrations',
 		},
-		seeds: { directory: './data/seeds' }
-	}
+		seeds: { directory: './data/seeds' },
+	},
 };

@@ -25,9 +25,13 @@ exports.up = function(knex, Promise) {
 		table.string('guest_guide', 256);
 
 		table.string('assistant_guide', 256);
+
+		table.unique(['manager_id', 'property_name']);
+
+		table.unique(['manager_id', 'address']);
 	});
 };
 
 exports.down = function(knex, Promise) {
-	return knex.schema.dropTableIfExists('properties');
+	return knex.raw('DROP TABLE if exists properties cascade');
 };

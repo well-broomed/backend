@@ -8,7 +8,7 @@ exports.up = function(knex, Promise) {
 			.onDelete('CASCADE');
 
 		table
-			.integer('user_id')
+			.integer('cleaner_id')
 			.unsigned()
 			.notNullable()
 			.references('users.user_id');
@@ -17,7 +17,7 @@ exports.up = function(knex, Promise) {
 
 		table.integer('status').defaultTo(0); // {0: pending, 1: accepted, 2: rejected}
 
-		table.unique(['guest_id', 'user_id']);
+		table.unique(['guest_id', 'cleaner_id']);
 	});
 };
 

@@ -6,9 +6,13 @@ const server = express();
 const logger = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
+const errorHandler = require('./middleware/errorHandler');
 
-server.use(logger('tiny'));
-server.use(cors());
+// Helpers
+const corsConfig = require('./config/corsConfig');
+
+server.use(logger('dev'));
+server.use(cors(corsConfig));
 server.use(helmet());
 server.use(express.json());
 
@@ -20,15 +24,24 @@ server.get('/', (req, res) => {
 // Routes
 const userRoutes = require('./routes/userRoutes');
 const inviteRoutes = require('./routes/inviteRoutes');
-// const propertyRoutes = require('./routes/propertyRoutes');
-// const guestRoutes = require('./routes/guestRoutes');
-// const taskRoutes = require('./routes/taskRoutes');
+const propertyRoutes = require('./routes/propertyRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+const guestRoutes = require('./routes/guestRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const cleanerRoutes = require('./routes/cleanerRoutes');
+const availabilityRoutes = require('./routes/availabilityRoutes');
 
 // Endpoints
 server.use('/api/users', userRoutes);
 server.use('/api/invites', inviteRoutes);
-// server.use('/properties', propertyRoutes);
-// server.use('/guests', guestRoutes);
-// server.use('/tasks', taskRoutes);
+server.use('/api/properties', propertyRoutes);
+server.use('/api/tasks', taskRoutes);
+server.use('/api/guests', guestRoutes);
+server.use('/api/reports', reportRoutes);
+server.use('/api/cleaners', cleanerRoutes);
+server.use('/api/avail', availabilityRoutes);
+
+// Error handler
+server.use(errorHandler);
 
 module.exports = server;

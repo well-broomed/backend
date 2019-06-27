@@ -1,7 +1,7 @@
 exports.up = function(knex, Promise) {
-	return knex.schema.createTable('available_properties', table => {
+	return knex.schema.createTable('available_cleaners', table => {
 		table
-			.integer('user_id')
+			.integer('cleaner_id')
 			.unsigned()
 			.notNullable()
 			.references('users.user_id');
@@ -12,10 +12,10 @@ exports.up = function(knex, Promise) {
 			.notNullable()
 			.references('properties.property_id');
 
-		table.unique(['user_id', 'property_id']);
+		table.unique(['cleaner_id', 'property_id']);
 	});
 };
 
 exports.down = function(knex, Promise) {
-	return knex.schema.dropTableIfExists('available_properties');
+	return knex.schema.dropTableIfExists('available_cleaners');
 };
