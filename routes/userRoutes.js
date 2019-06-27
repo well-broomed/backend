@@ -127,8 +127,86 @@ router.get(
 	}
 );
 
+/** Profile Pic Upload */
+router.put( '/profilepic/:user_id', checkJwt, checkUserInfo, upload.single('File'), async (req, res) => {
+		const user_id = req.params.user_id;
+		const auth0id = req.user.sub;
+		if (req.file) {
+			const file = dUri.format(
+				path.extname(req.file.originalname).toString(),
+				req.file.buffer
+			).content;
+
+			cloudinary.v2.uploader.upload(
+				file,
+				{
+					use_filename: true,
+					unique_filename: false
+				},
+				async (error, result) => {
+					console.log(error, result);
+					if (result) {
+						const updateObj = {};
+						updateObj.user_metadata = {
+							picture: result.secure_url
+						};
+
+						const auth0user = {
+							uri: `${process.env.AUTH0_API}users/${auth0id}`,
+							headers: {
+								Authorization: `Bearer ${process.env.AUTH0_MANAGEMENT_JWT}`
+							},
+							body: updateObj,
+							json: true
+						};
+
+						rp.patch(auth0user)
+							.then(status => {
+								console.log('UPDATE USER');
+								// parse the returned updated auth0 user object for our internal api
+								const userUpdate = {
+									user_name: status.username,
+									email: status.email,
+									img_url: status.picture
+								};
+
+								userModel
+									.updateUser(user_id, userUpdate)
+									.then(status => {
+										// refresh the userinfo token
+										const userInfo = generateToken(status, req.user.exp);
+
+										return res
+											.status(200)
+											.json({ user: status[0], userInfo: userInfo });
+									})
+									.catch(err => {
+										console.log(err);
+										return res
+											.status(500)
+											.json({ error: `Internal server error.` });
+									});
+							})
+							.catch(err => {
+								console.log(err);
+								return res
+									.status(500)
+									.json({ error: `Internal server error.` });
+							});
+					} else if (error) res.status(403).json({ error });
+				}
+			);
+		} else
+			res
+				.status(500)
+				.json({
+					Error: 'There was a problem with the file reaching the server.'
+				});
+	}
+);
+
 /** Update user */
-router.put('/:user_id', checkJwt, checkUserInfo, upload.single("File"), async (req, res) => {
+router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 	const user_id = req.params.user_id;
 	const changes = req.body;
 
