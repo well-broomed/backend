@@ -181,7 +181,7 @@ router.post('/imageupload', checkJwt, checkUserInfo, upload.single('File'), asyn
 })
 
 /** Add a new property */
-router.post('/', checkJwt, checkUserInfo, upload.single('File'), async (req, res) => {
+router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id: manager_id, role } = req.user;
 	const {
 		property_name,
@@ -228,7 +228,7 @@ router.post('/', checkJwt, checkUserInfo, upload.single('File'), async (req, res
 });
 
 /** Update a property */
-router.put('/:property_id', checkJwt, checkUserInfo, upload.single('File'), async (req, res) => {
+router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
 	const { property_id } = req.params;
 	const {
