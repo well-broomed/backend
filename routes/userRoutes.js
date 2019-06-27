@@ -56,7 +56,7 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 
 		if (user.notUnique) {
 			// user_name and/or email are already taken
-			return res.status(409).json({ notUnique });
+			return res.status(409).json({error: `That username/email is already taken.`});
 		}
 
 		// Attempt to accept invite if provided with inviteCode
@@ -227,44 +227,42 @@ router.put('/:user_id', checkJwt, checkUserInfo, async (req, res) => {
 	} else if (changes.email) {
 		updateObj.email = changes.email;
 	}
-	
-		const auth0user = {
-			uri: `${process.env.AUTH0_API}users/${auth0id}`,
-			headers: {
-				Authorization: `Bearer ${process.env.AUTH0_MANAGEMENT_JWT}`,
-			},
-			body: updateObj,
-			json: true,
-		};
 
-		rp.patch(auth0user)
-			.then(status => {
+	const auth0user = {
+		uri: `${process.env.AUTH0_API}users/${auth0id}`,
+		headers: {
+			Authorization: `Bearer ${process.env.AUTH0_MANAGEMENT_JWT}`,
+		},
+		body: updateObj,
+		json: true,
+	};
 
-				console.log("UPDATE USER");
-				// parse the returned updated auth0 user object for our internal api
-				const userUpdate = {
-					user_name: status.username,
-					email: status.email,
-					img_url: status.picture,
-				};
+	rp.patch(auth0user)
+		.then(status => {
+			// parse the returned updated auth0 user object for our internal api
+			const userUpdate = {
+				user_name: status.username,
+				email: status.email,
+				img_url: status.picture,
+			};
 
-				userModel
-					.updateUser(user_id, userUpdate)
-					.then(status => {
-						// refresh the userinfo token
-						const userInfo = generateToken(status, req.user.exp);
+			userModel
+				.updateUser(user_id, userUpdate)
+				.then(status => {
+					// refresh the userinfo token
+					const userInfo = generateToken(status, req.user.exp);
 
-						return res.status(200).json({ user: status[0], userInfo: userInfo });
-					})
-					.catch(err => {
-						console.log(err);
-						return res.status(500).json({ error: `Internal server error.` });
-					});
-			})
-			.catch(err => {
-				console.log(err);
-				return res.status(500).json({ error: `Internal server error.` });
-			});
+					return res.status(200).json({ user: status[0], userInfo: userInfo });
+				})
+				.catch(err => {
+					console.log(err);
+					return res.status(500).json({ error: `Internal server error.` });
+				});
+		})
+		.catch(err => {
+			console.log(err);
+			return res.status(500).json({ error: `Internal server error.` });
+		});
 });
 
 module.exports = router;

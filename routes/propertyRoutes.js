@@ -9,6 +9,7 @@ const checkUserInfo = require('../middleware/checkUserInfo');
 // Helpers
 const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
+const partnerModel = require('../models/partnerModel');
 
 // Mailgun 
 const mailgunKey = process.env.MAILGUN_KEY;
@@ -33,15 +34,43 @@ cloudinary.config({
 /** Get properties by user_id */
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
+	if(role === 'manager'){
+		// if manager, collect properties for that manager
+		propertyModel.getProperties(user_id, role).then(properties => {
+			return res.status(200).json({properties});
+		})
+	} else {
+		// if assistant, collect all properties from all managers
+		partnerModel.getManagerIds(user_id).then(manager_ids => {
+			let manager_properties = [];
+			for(let i = 0; i < manager_ids.length; i++){
+				propertyModel.getProperties(manager_ids[i].manager_id, 'manager').then(properties => {
+					
+					// for the first manager, use the returned array
+					if(i === 0){
+						manager_properties = properties;
+					} else {
+						// for subsqeuent managers, push into existing array
+						manager_properties[0].push(properties)
+					}
+					
+					// when we reach end of manager_ids, return collected properties
+					if(i === manager_ids.length - 1){
+						return res.status(200).json({properties: manager_properties});
+					}
+				})
+			}
+		})
 
-	try {
-		const properties = await propertyModel.getProperties(user_id, role);
-
-		res.status(200).json({ properties });
-	} catch (error) {
-		console.error(error);
-		res.status(500).json({ error });
 	}
+	// try {
+	// 	const properties = await propertyModel.getProperties(user_id, role);
+
+	// 	return res.status(200).json({ properties });
+	// } catch (error) {
+	// 	console.error(error);
+	// 	return res.status(500).json({ error });
+	// }
 });
 
 /** Get properties with less info for 'default properties' dropdowns */
@@ -54,10 +83,10 @@ router.get('/defaults', checkJwt, checkUserInfo, async (req, res) => {
 			role
 		);
 
-		res.status(200).json({ defaultProperties });
+		return res.status(200).json({ defaultProperties });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -122,12 +151,12 @@ router.get('/cleaners', checkJwt, checkUserInfo, async (req, res) => {
 		}));
 		otherCleaners.unshift({ cleaner_id: user_id, cleaner_name: user_name });
 
-		res.status(200).json({
+		return res.status(200).json({
 			propertyCleaners: { properties, otherCleaners, availableCleaners },
 		});
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -147,10 +176,10 @@ router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(404).json({ error: 'property not found' });
 		}
 
-		res.status(200).json({ property });
+		return res.status(200).json({ property });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -219,11 +248,10 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 				return res.status(409).json({ notUnique });
 			}
 
-			res.status(201).json({ property_id });
-		
+		return res.status(201).json({ property_id });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -272,10 +300,10 @@ router.put('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 			return res.status(404).json({ error: 'invalid property' });
 		}
 
-		res.status(200).json({ updated });
+		return res.status(200).json({ updated });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ error });
+		return res.status(500).json({ error });
 	}
 });
 
@@ -293,6 +321,7 @@ router.delete('/:property_id', checkJwt, checkUserInfo, (req, res) => {
 		return res.status(500).json({error: `Internal server error.`})
 	})
 })
+
 
 /** Update availability */
 router.put(
@@ -376,10 +405,10 @@ router.put(
 
 			console.log(updated);
 
-			res.status(200).json({ updated });
+			return res.status(200).json({ updated });
 		} catch (error) {
 			console.error(error);
-			res.status(500).json({ error });
+			return res.status(500).json({ error });
 		}
 	}
 );

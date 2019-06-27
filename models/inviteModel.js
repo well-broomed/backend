@@ -10,7 +10,10 @@ const frontendUrl = process.env.REACT_APP_FRONTEND_URL || `http:/localhost:3000`
 
 module.exports = {
 	inviteUser,
-	acceptInvite
+	acceptInvite,
+	deleteInvite,
+	getInviteInfo,
+	getAllInvites,
 };
 
 async function inviteUser(manager_id, email) {
@@ -37,6 +40,7 @@ async function inviteUser(manager_id, email) {
 
 	// // Generate an inviteCode
 	const inviteCode = randomString(16);
+	console.log('INVITE CODE', inviteCode);
 
 	// Create an invite
 	const [invite] = await db('invites').insert(
@@ -56,7 +60,7 @@ async function inviteUser(manager_id, email) {
 		html:
 			'Hello! You have been invited to join a property management team on Well Broomed.' +
 			'If you would like to accept this invitation, please click this link: ' +
-			`${frontendUrl}/invite/` +
+			`${frontendUrl}/invite?` +
 			inviteCode
 	};
 	mailgun.messages().send(data, function(err, body) {
@@ -116,4 +120,16 @@ async function acceptInvite(email, inviteCode, cleaner_id) {
 	}
 
 	return { inviteStatus: 'invalid' };
+}
+
+function deleteInvite(inviteCode){
+	return db('invites').where({inviteCode}).del();
+}
+
+function getInviteInfo(inviteCode){
+	return db.select('*').from('invites').where({inviteCode}).first();
+}
+
+function getAllInvites(manager_id){
+	return db.select('*').from('invites').where({manager_id});
 }
