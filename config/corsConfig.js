@@ -7,8 +7,8 @@ const corsConfig = {
 
 		const allowedOrigins = [
 			'http://localhost:3000',
-			'https://wellbroomed.com',
-			'https://wellbroomed-dev.netlify.com'
+			'https://www.wellbroomed.com',
+			'https://wellbroomed-dev.netlify.com',
 		];
 
 		if (allowedOrigins.indexOf(origin) === -1) {
@@ -19,7 +19,7 @@ const corsConfig = {
 		}
 
 		return callback(null, true);
-	}
+	},
 };
 
 module.exports = corsConfig;
