@@ -6,7 +6,8 @@ const randomString = require('../helpers/randomString');
 const mailgunKey = process.env.MAILGUN_KEY;
 const mailgunDomain = process.env.MAILGUN_URL;
 const Mailgun = require('mailgun-js');
-const frontendUrl = process.env.REACT_APP_FRONTEND_URL || `http:/localhost:3000`;
+const frontendUrl =
+	process.env.REACT_APP_FRONTEND_URL || `http:/localhost:3000`;
 
 module.exports = {
 	inviteUser,
@@ -22,7 +23,7 @@ async function inviteUser(manager_id, email) {
 	if (cleaner) {
 		const [alreadyPartnered] = await db('partners').where({
 			manager_id,
-			cleaner_id: cleaner.user_id
+			cleaner_id: cleaner.user_id,
 		});
 
 		if (alreadyPartnered) {
@@ -50,8 +51,11 @@ async function inviteUser(manager_id, email) {
 
 	//MailGun
 	const mailgun = new Mailgun({ apiKey: mailgunKey, domain: mailgunDomain });
-	
-	const manager = await db('users').where({user_id: manager_id}).select('user_name').first();
+
+	const manager = await db('users')
+		.where({ user_id: manager_id })
+		.select('user_name')
+		.first();
 	//Content of Email Being Sent
 	const data = {
 		from: `${manager.user_name} <${manager.user_name}@well-broomed.com>`,
@@ -62,6 +66,7 @@ async function inviteUser(manager_id, email) {
 			'If you would like to accept this invitation, please click this link: ' +
 			`${frontendUrl}invite?` +
 			inviteCode
+
 	};
 	mailgun.messages().send(data, function(err, body) {
 		if (err) {
@@ -85,7 +90,7 @@ async function acceptInvite(email, inviteCode, cleaner_id) {
 			// Look for existing partnership
 			const [alreadyPartnered] = await db('partners').where({
 				manager_id,
-				cleaner_id
+				cleaner_id,
 			});
 
 			if (alreadyPartnered) {
@@ -122,14 +127,23 @@ async function acceptInvite(email, inviteCode, cleaner_id) {
 	return { inviteStatus: 'invalid' };
 }
 
-function deleteInvite(inviteCode){
-	return db('invites').where({inviteCode}).del();
+function deleteInvite(inviteCode) {
+	return db('invites')
+		.where({ inviteCode })
+		.del();
 }
 
-function getInviteInfo(inviteCode){
-	return db.select('*').from('invites').where({inviteCode}).first();
+function getInviteInfo(inviteCode) {
+	return db
+		.select('*')
+		.from('invites')
+		.where({ inviteCode })
+		.first();
 }
 
-function getAllInvites(manager_id){
-	return db.select('*').from('invites').where({manager_id});
+function getAllInvites(manager_id) {
+	return db
+		.select('*')
+		.from('invites')
+		.where({ manager_id });
 }

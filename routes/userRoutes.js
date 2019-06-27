@@ -13,6 +13,20 @@ const generateToken = require('../helpers/generateToken');
 
 const rp = require('request-promise');
 
+//Image Uploading
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({storage: storage});
+const path = require('path');
+const Datauri = require('datauri');
+const dUri = new Datauri();
+const cloudinary = require('cloudinary');
+cloudinary.config({
+	cloud_name:process.env.CLOUD_NAME,
+	api_key: process.env.CLOUDINARY_API_KEY,
+	api_secret: process.env.CLOUDINARY_API_SECRET
+})
+
 /* Check for a valid token, add the user to our db if they aren't registered, and create a partnership if provided a valid invite code */
 router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 	const { nickname: user_name, email, picture: img_url, exp } = req.user;
@@ -110,6 +124,84 @@ router.get(
 			console.error(error);
 			res.status(500).json({ error });
 		}
+	}
+);
+
+/** Profile Pic Upload */
+router.put( '/profilepic/:user_id', checkJwt, checkUserInfo, upload.single('File'), async (req, res) => {
+		const user_id = req.params.user_id;
+		const auth0id = req.user.sub;
+		if (req.file) {
+			const file = dUri.format(
+				path.extname(req.file.originalname).toString(),
+				req.file.buffer
+			).content;
+
+			cloudinary.v2.uploader.upload(
+				file,
+				{
+					use_filename: true,
+					unique_filename: false
+				},
+				async (error, result) => {
+					console.log(error, result);
+					if (result) {
+						const updateObj = {};
+						updateObj.user_metadata = {
+							picture: result.secure_url
+						};
+
+						const auth0user = {
+							uri: `${process.env.AUTH0_API}users/${auth0id}`,
+							headers: {
+								Authorization: `Bearer ${process.env.AUTH0_MANAGEMENT_JWT}`
+							},
+							body: updateObj,
+							json: true
+						};
+
+						rp.patch(auth0user)
+							.then(status => {
+								console.log('UPDATE USER');
+								// parse the returned updated auth0 user object for our internal api
+								const userUpdate = {
+									user_name: status.username,
+									email: status.email,
+									img_url: status.picture
+								};
+
+								userModel
+									.updateUser(user_id, userUpdate)
+									.then(status => {
+										// refresh the userinfo token
+										const userInfo = generateToken(status, req.user.exp);
+
+										return res
+											.status(200)
+											.json({ user: status[0], userInfo: userInfo });
+									})
+									.catch(err => {
+										console.log(err);
+										return res
+											.status(500)
+											.json({ error: `Internal server error.` });
+									});
+							})
+							.catch(err => {
+								console.log(err);
+								return res
+									.status(500)
+									.json({ error: `Internal server error.` });
+							});
+					} else if (error) res.status(403).json({ error });
+				}
+			);
+		} else
+			res
+				.status(500)
+				.json({
+					Error: 'There was a problem with the file reaching the server.'
+				});
 	}
 );
 
