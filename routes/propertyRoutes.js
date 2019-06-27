@@ -16,6 +16,20 @@ const mailgunKey = process.env.MAILGUN_KEY;
 const mailgunDomain = process.env.MAILGUN_URL;
 const Mailgun = require('mailgun-js');
 
+//Image Uploading
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({storage: storage});
+const path = require('path');
+const Datauri = require('datauri');
+const dUri = new Datauri();
+const cloudinary = require('cloudinary');
+cloudinary.config({
+	cloud_name:process.env.CLOUD_NAME,
+	api_key: process.env.CLOUDINARY_API_KEY,
+	api_secret: process.env.CLOUDINARY_API_SECRET
+})
+
 // Routes
 /** Get properties by user_id */
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
@@ -169,16 +183,42 @@ router.get('/:property_id', checkJwt, checkUserInfo, async (req, res) => {
 	}
 });
 
+/**Image uploading  **/
+router.post('/imageupload', checkJwt, checkUserInfo, upload.single('File'), async (req,res) => {
+	if (req.file) {
+		const file = dUri.format(
+			path.extname(req.file.originalname).toString(),
+			req.file.buffer
+		).content;
+
+		cloudinary.v2.uploader.upload(
+			file,
+			{
+				use_filename: true,
+				unique_filename: false
+			},
+			async (error, result) => {
+				console.log(error, result);
+				if (result) 
+					res.status(200).json(result.secure_url);
+				else if(error)
+					res.status(403).json({error});
+			})
+		}
+	else
+			res.status(500).json({Error: "There was a problem with the file reaching the server."})
+})
+
 /** Add a new property */
 router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id: manager_id, role } = req.user;
 	const {
 		property_name,
 		address,
-		img_url,
-		cleaner_id,
 		guest_guide,
 		assistant_guide,
+		img_url,
+		//cleaner_id
 	} = req.body;
 
 	const propertyInfo = {
@@ -186,27 +226,27 @@ router.post('/', checkJwt, checkUserInfo, async (req, res) => {
 		property_name,
 		address,
 		img_url,
-		cleaner_id,
 		guest_guide,
 		assistant_guide,
 	};
+
+	
 
 	if (role !== 'manager') {
 		return res.status(403).json({ error: 'not a manager' });
 	}
 
 	try {
-		if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) {
-			return res.status(404).json({ error: 'invalid assistant' });
-		}
+		// if (cleaner_id && !(await userModel.getPartner(manager_id, cleaner_id))) { Redudant if a cleaner isn't assigned until after creating a property
+		// 	return res.status(404).json({ error: 'invalid assistant' });
+		// }
+			const { property_id, notUnique } = await propertyModel.addProperty(
+				propertyInfo
+			);
 
-		const { property_id, notUnique } = await propertyModel.addProperty(
-			propertyInfo
-		);
-
-		if (notUnique) {
-			return res.status(409).json({ notUnique });
-		}
+			if (notUnique) {
+				return res.status(409).json({ notUnique });
+			}
 
 		return res.status(201).json({ property_id });
 	} catch (error) {
