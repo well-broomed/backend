@@ -42,7 +42,7 @@ router.post('/login/:inviteCode*?', checkJwt, async (req, res) => {
 
 		if (user.notUnique) {
 			// user_name and/or email are already taken
-			return res.status(409).json({ notUnique });
+			return res.status(409).json({error: `That username/email is already taken.`});
 		}
 
 		// Attempt to accept invite if provided with inviteCode

@@ -24,7 +24,43 @@ module.exports = {
 	checkCleaner,
 	updateAvailability,
 	deleteProperty,
+
+	getManagerProperties,
+	getAvailableCleaners,
+	getAvailableProperties,
+
+	addAvailability,
+	removeAvailability,
 };
+
+function getManagerProperties(manager_id){
+	return db.select('*').from('properties').where({manager_id});
+}
+
+function getAvailableProperties(cleaner_id){
+	console.log("CLEANER ID", cleaner_id);
+	return db.select('property_id').from('available_cleaners').where({cleaner_id});
+}
+
+function getAvailableCleaners(property_id){
+	return db.select('cleaner_id').from('available_cleaners').where({property_id});
+}
+
+/**
+ * 
+ * entry = {
+ * cleaner_id: 1,
+ * property_id: 2
+ * }
+ */
+
+function addAvailability(entry){
+	return db('available_cleaners').insert(entry).into('available_cleaners');
+}
+
+function removeAvailability(entry){
+	return db('available_cleaners').returning(1).where(entry).del();
+}
 
 async function getProperties(user_id, role) {
 	const managerPropertyFields =

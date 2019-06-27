@@ -9,6 +9,7 @@ const checkUserInfo = require('../middleware/checkUserInfo');
 // Helpers
 const userModel = require('../models/userModel');
 const propertyModel = require('../models/propertyModel');
+const partnerModel = require('../models/partnerModel');
 
 // Mailgun 
 const mailgunKey = process.env.MAILGUN_KEY;
@@ -19,14 +20,43 @@ const Mailgun = require('mailgun-js');
 /** Get properties by user_id */
 router.get('/', checkJwt, checkUserInfo, async (req, res) => {
 	const { user_id, role } = req.user;
-	try {
-		const properties = await propertyModel.getProperties(user_id, role);
+	if(role === 'manager'){
+		// if manager, collect properties for that manager
+		propertyModel.getProperties(user_id, role).then(properties => {
+			return res.status(200).json({properties});
+		})
+	} else {
+		// if assistant, collect all properties from all managers
+		partnerModel.getManagerIds(user_id).then(manager_ids => {
+			let manager_properties = [];
+			for(let i = 0; i < manager_ids.length; i++){
+				propertyModel.getProperties(manager_ids[i].manager_id, 'manager').then(properties => {
+					
+					// for the first manager, use the returned array
+					if(i === 0){
+						manager_properties = properties;
+					} else {
+						// for subsqeuent managers, push into existing array
+						manager_properties[0].push(properties)
+					}
+					
+					// when we reach end of manager_ids, return collected properties
+					if(i === manager_ids.length - 1){
+						return res.status(200).json({properties: manager_properties});
+					}
+				})
+			}
+		})
 
-		return res.status(200).json({ properties });
-	} catch (error) {
-		console.error(error);
-		return res.status(500).json({ error });
 	}
+	// try {
+	// 	const properties = await propertyModel.getProperties(user_id, role);
+
+	// 	return res.status(200).json({ properties });
+	// } catch (error) {
+	// 	console.error(error);
+	// 	return res.status(500).json({ error });
+	// }
 });
 
 /** Get properties with less info for 'default properties' dropdowns */
@@ -251,6 +281,7 @@ router.delete('/:property_id', checkJwt, checkUserInfo, (req, res) => {
 		return res.status(500).json({error: `Internal server error.`})
 	})
 })
+
 
 /** Update availability */
 router.put(
