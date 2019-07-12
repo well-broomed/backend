@@ -255,7 +255,9 @@ With all that said, your backend deployment should be ready for development.
 We hope you enjoy WellBroomed!
 
 Adam Reid
-<br>
+
+
 Max Kajiwara
-<br>
+
+
 Kevin Tena
