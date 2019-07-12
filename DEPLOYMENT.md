@@ -147,7 +147,7 @@ Now, a caveat here: the 'correct' way to access the management API is to program
 
 Using the token generated on the Auth0 Management API explorer section is fine for testing purposes, but is insufficient/not recommended for production as the token expiration will disqualify requests after about 2-3 days. 
 
-So I guess our challenge to you is to ensure that you implement the proper procedure for this token's generation per-request in the backend server. The documentation is there, it was just something that is not currently deployed in our repository. Good luck!
+So I guess our challenge to you is to ensure that you implement the proper procedure for this token's generation per-request in the backend server. The documentation is [here](https://auth0.com/docs/api/management/v2/tokens), it was just something that is not currently deployed in our repository. Good luck!
 
 Once you have those configurations and credentials plugged in, Auth0 should be set to work on the backend.
 
