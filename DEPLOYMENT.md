@@ -105,7 +105,7 @@ http://localhost:3000/callback, https://www.my-domain.com/callback
 
 Obviously replacing the localhost port with whichever port you're working on locally, and the domain with whichever domain name you settle on for staging and/or production. A Netlify address is fine here if you haven't purchased a domain.
 
-Make sure there are no trailing backslashes on your URLs here, it'll save you some headache later on. 
+**Make sure there are no trailing backslashes on your URLs here, it'll save you some headache later on.**
 
 Next, you need to set your Allowed Web Origins. It's a similar process:
 
