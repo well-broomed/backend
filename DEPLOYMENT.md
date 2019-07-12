@@ -23,11 +23,7 @@ First, make sure you have a fork or a duplicate repository cloned to your local 
 
 Next, in the backend directory, you'll want to create a `.env` file in the top directory. Create a file simply called `.env`.
 
-**
-```diff
-- Make sure to include `.env` inside of your `.gitignore` file, or you will push your sensitive credentials to a public directory, which is insecure and difficult to remove.**
-```
-**
+**Make sure to include `.env` inside of your `.gitignore` file, or you will push your sensitive credentials to a public directory, which is insecure and difficult to remove.**
 
 We'll be creating some accounts and plugging their details into this `.env` file throughout this process. But first things first...
 
