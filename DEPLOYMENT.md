@@ -1,4 +1,4 @@
-# WellBroomed - Deployment
+# [WellBroomed](https://www.wellbroomed.com) - Backend Deployment
 
 ### Deployment protocols and procedures for WellBroomed.
 
@@ -17,7 +17,7 @@
 
 These are deployment guidelines and processes for initiating a deployment of the WellBroomed backend architecture.
 
-WellBroomed is hosted on a Heroku backend, which was chosen for its ease of continuous integration and git monitoring as well as a robust selection of third-party provisions that can be added to applications.
+WellBroomed is hosted on a [Heroku](https://www.heroku.com) backend, which was chosen for its ease of continuous integration and git monitoring as well as a robust selection of third-party provisions that can be added to applications. You may wish to choose another backend deployment provider, but for the purposes of this documentation we will assume you have chosen Heroku as well. The basic gist is that you'll need certain environment variables and credentials regardless of which provider you choose, so we will walk you through the necessary third-party services that are required for WellBroomed to function correctly.
 
 First, make sure you have a fork or a duplicate repository cloned to your local machine. This repository is where you'll be making your edits in order to provision your own deployment.
 
