@@ -73,7 +73,7 @@ Once those two values are plugged into the `.env` file, that's all the setup you
 
 ## Cloudinary
 
-Next we'll be initializing Cloudinary for our cloud storage provider for image uploads. For Cloudinary, you can choose whether to sign up through them directly or to provision an add-on in Heroku, as their free tier model is essentially the same either way. 
+Next we'll be initializing [Cloudinary](https://cloudinary.com) as our cloud storage provider for image uploads. For Cloudinary, you can choose whether to sign up through them directly or to provision an add-on in Heroku, as their free tier model is essentially the same either way. 
 
 You'll need to grab 3 credentials from your Cloudinary account details and plug them into your `.env` file. It should look something like this:
 
