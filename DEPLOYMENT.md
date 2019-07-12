@@ -2,6 +2,8 @@
 
 ### Deployment protocols and procedures for WellBroomed.
 
+---
+
 ## Table of Contents
 
 1. [Heroku](#Heroku)
@@ -15,6 +17,8 @@
 9. [Migrations](#Migrations)
 10. [Uptime Robot](#Uptime-Robot)
 
+---
+
 These are deployment guidelines and processes for initiating a deployment of the WellBroomed backend architecture.
 
 WellBroomed is hosted on a Heroku backend, which was chosen for its ease of continuous integration and git monitoring as well as a robust selection of third-party provisions that can be added to applications.
@@ -27,6 +31,8 @@ Next, in the backend directory, you'll want to create a `.env` file in the top d
 
 We'll be creating some accounts and plugging their details into this `.env` file throughout this process. But first things first...
 
+---
+
 ## Heroku
 
 Let's initialize the application in Heroku. Sign up or login to your [Heroku](https://www.heroku.com/) account.
@@ -38,6 +44,8 @@ Once the application is created, you'll want to "configure some addons".
 Click the "configure some addons" button, and search the directory for "Heroku Postgres". The Heroku Postgres addon for Hobby Dev is free and should suit your purposes fine. Add it to the application, and it should be attached as a DATABASE to your app automatically. We'll handle the migrations later on, as you'll need some other credentials first before we can run them.
 
 Additionally, I would recommend adding the "Papertrail" add-on as well. It will give you easy access to the server logs should you need to track down any issues.
+
+---
 
 ## Mailgun
 
@@ -71,6 +79,8 @@ MAILGUN_KEY = '123abc456def789ghi-012jkl345mno-678pqr`
 
 Once those two values are plugged into the `.env` file, that's all the setup you need to do on the backend. 
 
+---
+
 ## Cloudinary
 
 Next we'll be initializing [Cloudinary](https://cloudinary.com) as our cloud storage provider for image uploads. For Cloudinary, you can choose whether to sign up through them directly or to provision an add-on in Heroku, as their free tier model is essentially the same either way. 
@@ -84,6 +94,8 @@ CLOUDINARY_API_SECRET = 'abcd1234efgh5678'
 ```
 
 Once those are plugged in, you should be good to go for Cloudinary.
+
+---
 
 ## Auth0
 
@@ -151,6 +163,8 @@ So I guess our challenge to you is to ensure that you implement the proper proce
 
 Once you have those configurations and credentials plugged in, Auth0 should be set to work on the backend.
 
+---
+
 ## Internal JWT
 
 Since we love JavaScript Web Tokens so much, we decided to use two of them!
@@ -166,6 +180,8 @@ JWT_SECRET = 'super secret passphrase that only you should know'
 ```
 
 Choose something complex, preferably something alphanumeric with at least 16 characters. That should give you enough entropy to prevent brute-force decryption until the heat death of the universe.
+
+---
 
 ## PGAdmin
 
@@ -200,6 +216,8 @@ development: {
 }
 ```
 
+---
+
 ## Dependencies
 
 Now that you have your local database server running, and your `.env` values set up, make sure to install your dependencies. 
@@ -211,6 +229,8 @@ Once your dependencies are installed, you're ready to run your migrations.
 In the terminal, type `knex migrate:latest`. Your migrations should run, initializing the table structure and providing some dummy user data courtesy of Faker.js.
 
 Once the migrations have completed, in the terminal type `yarn dev`. This will initialize your development server. If everything goes well, you should be in business and your backend is setup for local development. 
+
+---
 
 ## Heroku Environment Variables
 
@@ -239,20 +259,25 @@ If I remember correctly, this should actually be present automatically once the 
 
 Once those values are plugged in, it's time to run your production migrations. 
 
+---
+
 ## Migrations
 
 I find the simplest way to run these is to go to the Heroku dashboard for your application, and in the upper right click the "More" dropdown. Then select "Run Console". 
 
 In the console prompt, type `knex migrate:latest`. This should run your migrations, and your production database should be good to go. Keep note of this console in case you need to use it later for a rollback or re-migration should you make alterations to the migration files. 
 
+---
+
 ## Uptime Robot
 
 There is one more tool that I would recommend once your site is stable in production, and that's [UptimeRobot](https://uptimerobot.com/). With UptimeRobot, you can periodically ping your Heroku backend server so that it will not go to sleep and potentially disrupt service. The free edition allows you to ping the server every 5 minutes, which is sufficient to prevent a shutdown of the Heroku dyno. You'll also get monitoring updates and status reports in case the server goes offline for any reason. 
 
+---
 
-With all that said, your backend deployment should be ready for development.
+With all that complete, your backend deployment should be ready for development! :tada:
 
-We hope you enjoy WellBroomed!
+We hope you enjoy WellBroomed! :v:
 
 Adam Reid
 
