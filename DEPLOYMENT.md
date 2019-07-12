@@ -1,6 +1,6 @@
-# [WellBroomed](https://www.wellbroomed.com) - Backend Deployment
+# WellBroomed - Backend Deployment
 
-### Deployment protocols and procedures for WellBroomed.
+### Deployment protocols and procedures for [WellBroomed](https://www.wellbroomed.com)
 
 ## Table of Contents
 
