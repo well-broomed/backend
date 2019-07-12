@@ -1,6 +1,6 @@
-#WellBroomed - Deployment
+# WellBroomed - Deployment
 
-###Deployment protocols and dependencies for WellBroomed.
+### Deployment protocols and dependencies for WellBroomed.
 
 ## Table of Contents
 
