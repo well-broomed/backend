@@ -1,6 +1,6 @@
 # WellBroomed - Backend Deployment
 
-### Deployment protocols and procedures for [WellBroomed](https://www.wellbroomed.com)
+### Deployment protocols and procedures for [WellBroomed](https://www.wellbroomed.com).
 
 ## Table of Contents
 
@@ -15,13 +15,13 @@
 9. [Migrations](#Migrations)
 10. [Uptime Robot](#Uptime-Robot)
 
-These are deployment guidelines and processes for initiating a deployment of the WellBroomed backend architecture.
+These are the deployment guidelines and procedures for initiating a deployment of the WellBroomed backend architecture.
 
 WellBroomed is hosted on a [Heroku](https://www.heroku.com) backend, which was chosen for its ease of continuous integration and git monitoring as well as a robust selection of third-party provisions that can be added to applications. You may wish to choose another backend deployment provider, but for the purposes of this documentation we will assume you have chosen Heroku as well. The basic gist is that you'll need certain environment variables and credentials regardless of which provider you choose, so we will walk you through the necessary third-party services that are required for WellBroomed to function correctly.
 
-First, make sure you have a fork or a duplicate repository cloned to your local machine. This repository is where you'll be making your edits in order to provision your own deployment.
+First, make sure you have a fork cloned to your local machine. This cloned repository is where you'll be making your edits in order to provision your own deployment.
 
-Next, in the backend directory, you'll want to create a `.env` file in the top directory. Create a file simply called `.env`.
+Next, in the backend directory, you'll want to create a `.env` file in the top level directory. Create a file simply called `.env`.
 
 :exclamation: **Make sure to include `.env` inside of your `.gitignore` file, or you will push your sensitive credentials to a public directory, which is insecure and difficult to remove.** :exclamation:
 
@@ -45,7 +45,7 @@ Mailgun is the email client that will be sending email notifications through the
 
 You can sign up for a free account at [mailgun.com](https://www.mailgun.com). I would recommend signing up with Mailgun directly rather than provisioning the Heroku addon, due to the way the price structure is different for each option. 
 
-Basically, you'll need to have a credit card on file at Mailgun in order to create custom email domains, which are necessary to send emails in production mode once the site is live. It's free for the first 10,000 emails. 
+Basically, you'll need to have a credit card on file at Mailgun in order to create custom email domains, which are necessary to send emails in production mode once the site is live. It's free for the first 10,000 emails per month.
 
 Alternatively, provisioning through Heroku requires you to bump up another pay step in order to have custom domains, and doesn't seem to offer custom domains on a pay-as-you-go pricing model. 
 
@@ -75,7 +75,7 @@ Once those two values are plugged into the `.env` file, that's all the setup you
 
 Next we'll be initializing [Cloudinary](https://cloudinary.com) as our cloud storage provider for image uploads. For Cloudinary, you can choose whether to sign up through them directly or to provision an add-on in Heroku, as their free tier model is essentially the same either way. 
 
-You'll need to grab 3 credentials from your Cloudinary account details and plug them into your `.env` file. It should look something like this:
+You'll need to grab 3 credentials from your Cloudinary account details and plug them into your `.env` file. These values are directly accessible from the dashboard at the top of the page. It should look something like this:
 
 ```
 CLOUD_NAME = 'my-cloud-name'
