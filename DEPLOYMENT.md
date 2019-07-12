@@ -159,7 +159,7 @@ The logic behind this was that there is information that we need for our purpose
 
 This helps us differentiate between account types without having to query the database, and also allows us to have access to the `user_id` with each request without having to do a lookup based on their email. 
 
-All you need to do is to create your own JWT secret that you will sign your internal JWTs with. It'll look something like this:
+All you need to do is to create your own JWT secret inside of the `.env` file that you will sign your internal JWTs with. It'll look something like this:
 
 ```
 JWT_SECRET = 'super secret passphrase that only you should know'
